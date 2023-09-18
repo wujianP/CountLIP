@@ -62,7 +62,7 @@ def main():
         object_count_list = [dict(Counter(cats)) for cats in cats_list]
 
         # visualize
-        for i in range(args.batch_list):
+        for i in range(args.batch_size):
             wandb_visualize(img_list[i], boxes_list[i], masks_list[i], areas_list[i],
                             object_count_list[i], cats_list[i], captions_list[i])
         from IPython import embed
