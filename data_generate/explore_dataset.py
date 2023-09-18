@@ -16,7 +16,7 @@ from collections import Counter
 
 
 def show_box(box, ax, label):
-    color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
+    color = np.concatenate([np.random.random(3), np.array([0.8])], axis=0)
     x0, y0, w, h = box[0], box[1], box[2], box[3]
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor=color, facecolor=(0, 0, 0, 0), lw=4))
     ax.text(x0, y0, label)
@@ -34,12 +34,10 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
             show_box(box, ax1, label)
     fig_img_box = plt.gcf()
 
-    tab_caption = wandb.Table(columns=['captions'])
-    for cap in caps:
-        tab_caption.add_data(cap)
+    obj_cnt_str = "\n".join(f"{key}: {value}" for key, value in object_count.items())
+    cap_str = "\n".join(caps)
 
-    run.log({'Image': wandb.Image(fig_img_box, caption=object_count)})
-    run.log({'Captions': tab_caption})
+    run.log({'Image': wandb.Image(fig_img_box, caption=obj_cnt_str + '\n' + cap_str)})
 
 
 @torch.no_grad()
@@ -51,7 +49,7 @@ def main():
                             batch_size=args.batch_size,
                             num_workers=args.num_workers,
                             pin_memory=True,
-                            shuffle=False,
+                            shuffle=True,
                             collate_fn=lvis_collate_fn)
 
     for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
