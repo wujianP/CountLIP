@@ -12,21 +12,21 @@ class LVISDataset(Dataset):
         self.lvis = LVIS(lvis_ann)
         self.coco = COCO(coco_ann)
         self.image_ids = self.lvis.get_img_ids()
+        self.coco_img_ids = self.coco.getImgIds()
 
     def __len__(self):
         return len(self.image_ids)
 
     def __getitem__(self, idx):
-        from IPython import embed
-        embed()
         # load image
         img_id = self.image_ids[idx]
+        assert img_id in self.coco_img_ids
         img_dict = self.lvis.load_imgs([img_id])[0]
         img_filename = '/'.join(img_dict['coco_url'].split('/')[-2:])
         img_path = os.path.join(self.data_root, img_filename)
         img = Image.open(img_path).convert('RGB')
 
-        # load masks
+        # load masks, boxes, areas and categories
         ann_ids = self.lvis.get_ann_ids(img_ids=[img_id])
         ann_dicts = self.lvis.load_anns(ann_ids)
         boxes, masks, areas, cats = [], [], [], []
@@ -40,4 +40,8 @@ class LVISDataset(Dataset):
             masks.append(mask)
             areas.append(area)
             cats.append(cat)
-        return img, boxes, masks, areas, cats
+
+        # load captions
+        captions = [cap['caption'] for cap in self.coco.imgToAnns[img_id]]
+
+        return img, boxes, masks, areas, cats, captions
