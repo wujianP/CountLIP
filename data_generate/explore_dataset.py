@@ -7,7 +7,9 @@ import torch
 import wandb
 import argparse
 
-from dataset import LVISDataset
+from dataset import LVISDataset, lvis_collate_fn
+from torch.utils.data import DataLoader
+from collections import Counter
 
 
 @torch.no_grad()
@@ -15,11 +17,20 @@ def main():
     dataset = LVISDataset(data_root=args.data_root,
                           lvis_ann=args.lvis_ann,
                           coco_ann=args.coco_ann)
+    dataloader = DataLoader(dataset=dataset,
+                            batch_size=args.batch_size,
+                            num_workers=args.num_workers,
+                            pin_memory=True,
+                            shuffle=False,
+                            collate_fn=lvis_collate_fn)
 
+    for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
+        # analysis categories
+        object_count_list = [Counter(cats) for cats in cats_list]
+        from IPython import embed
 
-    from IPython import embed
+        embed()
 
-    embed()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Explore LVIS Dataset')

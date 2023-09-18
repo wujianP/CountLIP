@@ -20,7 +20,6 @@ class LVISDataset(Dataset):
     def __getitem__(self, idx):
         # load image
         img_id = self.image_ids[idx]
-        assert img_id in self.coco_img_ids
         img_dict = self.lvis.load_imgs([img_id])[0]
         img_filename = '/'.join(img_dict['coco_url'].split('/')[-2:])
         img_path = os.path.join(self.data_root, img_filename)
@@ -45,3 +44,15 @@ class LVISDataset(Dataset):
         captions = [cap['caption'] for cap in self.coco.imgToAnns[img_id]]
 
         return img, boxes, masks, areas, cats, captions
+
+
+def lvis_collate_fn(batch):
+    img_list, boxes_list, masks_list, areas_list, cats_list, captions_list = [], [], [], [], [], []
+    for item in batch:
+        img_list.append(item[0])
+        boxes_list.append(item[1])
+        masks_list.append(item[2])
+        areas_list.append(item[3])
+        cats_list.append(item[4])
+        captions_list.append(item[5])
+    return img_list, boxes_list, masks_list, areas_list, cats_list, captions_list
