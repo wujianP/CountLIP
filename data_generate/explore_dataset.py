@@ -9,7 +9,6 @@ import argparse
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 from dataset import LVISDataset, lvis_collate_fn
 from torch.utils.data import DataLoader
@@ -33,15 +32,25 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
     if len(boxes) > 0:
         for (box, label) in zip(boxes, cats):
             show_box(box, ax1, label)
-    fig_img_box_mask = plt.gcf()
+    fig_img_box = plt.gcf()
 
-    tab = wandb.Table(columns=['figure', 'cat_cnt', 'captions'], allow_mixed_types=True)
-    fig = wandb.Image(fig_img_box_mask)
-    cat_cnt = "\n".join(f"{key}: {value}" for key, value in object_count.items())
-    caps = "\n".join(caps)
-    tab.add_data(fig, cat_cnt, caps)
+    tab = wandb.Table(columns=['figure', 'cat_cnt', 'captions'])
+    sub_tab_cat = wandb.Table(columns=['cat', 'cnt'])
+    for cat, cnt in object_count.items():
+        sub_tab_cat.add_data(cat, cnt)
+    sub_tab_cap = wandb.Table(columns=['captions'])
+    for cap in caps:
+        sub_tab_cap.add_data(cap)
+    tab.add_data(wandb.Image(fig_img_box), sub_tab_cat, sub_tab_cap)
+
+    from IPython import embed
+    embed()
+    # cat_cnt = "\n".join(f"{key}: {value}" for key, value in object_count.items())
+    # caps = "\n".join(caps)
+    # tab.add_data(fig_img_box, cat_cnt, caps)
 
     run.log({'LVIS': tab})
+    run.log({'LVIS': sub_tab_cat})
 
 
 @torch.no_grad()
