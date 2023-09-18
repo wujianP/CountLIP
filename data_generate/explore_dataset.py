@@ -17,6 +17,10 @@ def main():
                           coco_ann=args.coco_ann)
 
 
+    from IPython import embed
+
+    embed()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Explore LVIS Dataset')
     parser.add_argument('--data_root', type=str)
