@@ -7,9 +7,42 @@ import torch
 import wandb
 import argparse
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
 from dataset import LVISDataset, lvis_collate_fn
 from torch.utils.data import DataLoader
 from collections import Counter
+
+
+def show_box(box, ax, label):
+    color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
+    x0, y0, w, h = box[0], box[1], box[2], box[3]
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor=color, facecolor=(0, 0, 0, 0), lw=2))
+    ax.text(x0, y0, label)
+
+
+def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
+    w, h = img.size
+    # img-boxs
+    plt.figure(figsize=(w / 60, h / 60))
+    ax1 = plt.gca()
+    ax1.axis('off')
+    ax1.imshow(img)
+    if len(boxes) > 0:
+        for (box, label) in zip(boxes, cats):
+            show_box(box, ax1, label)
+    fig_img_box_mask = plt.gcf()
+
+    from IPython import embed
+    embed()
+    # object per categories
+    data = {"category": [key for key in object_count.keys()],
+            "count": [value for value in object_count.values()]}
+    df = pd.DataFrame(data)
+    run.log({'LVIS': [wandb.Image(fig_img_box_mask, caption=caps),
+                      wandb.Table(data=df)]})
 
 
 @torch.no_grad()
@@ -26,7 +59,12 @@ def main():
 
     for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
         # analysis categories
-        object_count_list = [Counter(cats) for cats in cats_list]
+        object_count_list = [dict(Counter(cats)) for cats in cats_list]
+
+        # visualize
+        for i in range(args.batch_list):
+            wandb_visualize(img_list[i], boxes_list[i], masks_list[i], areas_list[i],
+                            object_count_list[i], cats_list[i], captions_list[i])
         from IPython import embed
 
         embed()
