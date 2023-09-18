@@ -18,7 +18,7 @@ from collections import Counter
 def show_box(box, ax, label):
     color = np.concatenate([np.random.random(3), np.array([0.8])], axis=0)
     x0, y0, w, h = box[0], box[1], box[2], box[3]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor=color, facecolor=(0, 0, 0, 0), lw=4))
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor=color, facecolor=(0, 0, 0, 0), lw=3))
     ax.text(x0, y0, label)
 
 
@@ -35,7 +35,7 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
     fig_img_box = plt.gcf()
 
     obj_cnt_str = "\n".join(f"{key}: {value}" for key, value in object_count.items())
-    cap_str = "\n".join(caps)
+    cap_str = "\n\n".join(caps)
 
     run.log({'Image': wandb.Image(fig_img_box, caption=obj_cnt_str + '\n' + cap_str)})
 
@@ -60,9 +60,6 @@ def main():
         for i in range(args.batch_size):
             wandb_visualize(img_list[i], boxes_list[i], masks_list[i], areas_list[i],
                             object_count_list[i], cats_list[i], captions_list[i])
-        from IPython import embed
-
-        embed()
 
 
 if __name__ == '__main__':
