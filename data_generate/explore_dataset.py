@@ -34,23 +34,19 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
             show_box(box, ax1, label)
     fig_img_box = plt.gcf()
 
-    tab = wandb.Table(columns=['figure', 'cat_cnt', 'captions'])
-    sub_tab_cat = wandb.Table(columns=['cat', 'cnt'])
+    tab_cate = wandb.Table(columns=['cat', 'cnt'])
     for cat, cnt in object_count.items():
-        sub_tab_cat.add_data(cat, cnt)
-    sub_tab_cap = wandb.Table(columns=['captions'])
+        tab_cate.add_data(cat, cnt)
+    tab_caption = wandb.Table(columns=['captions'])
     for cap in caps:
-        sub_tab_cap.add_data(cap)
-    tab.add_data(wandb.Image(fig_img_box), sub_tab_cat, sub_tab_cap)
+        tab_caption.add_data(cap)
 
     from IPython import embed
     embed()
-    # cat_cnt = "\n".join(f"{key}: {value}" for key, value in object_count.items())
-    # caps = "\n".join(caps)
-    # tab.add_data(fig_img_box, cat_cnt, caps)
 
-    run.log({'LVIS': tab})
-    run.log({'LVIS': sub_tab_cat})
+    run.log({'Image': wandb.Image(fig_img_box)})
+    run.log({'Category-Count': tab_cate})
+    run.log({'Captions': tab_caption})
 
 
 @torch.no_grad()
