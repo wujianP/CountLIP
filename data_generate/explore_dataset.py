@@ -35,14 +35,13 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
             show_box(box, ax1, label)
     fig_img_box_mask = plt.gcf()
 
-    from IPython import embed
-    embed()
-    # object per categories
-    data = {"category": [key for key in object_count.keys()],
-            "count": [value for value in object_count.values()]}
-    df = pd.DataFrame(data)
-    run.log({'LVIS': [wandb.Image(fig_img_box_mask, caption=caps),
-                      wandb.Table(data=df)]})
+    tab = wandb.Table(columns=['figure', 'cat_cnt', 'captions'], allow_mixed_types=True)
+    fig = wandb.Image(fig_img_box_mask)
+    cat_cnt = "\n".join(f"{key}: {value}" for key, value in object_count.items())
+    caps = "\n".join(caps)
+    tab.add_data(fig, cat_cnt, caps)
+
+    run.log({'LVIS': tab})
 
 
 @torch.no_grad()
