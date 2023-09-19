@@ -7,12 +7,12 @@ from pycocotools.coco import COCO
 
 
 class LVISDataset(Dataset):
-    def __init__(self, data_root, lvis_ann, coco_ann, return_coco_ann):
+    def __init__(self, data_root, lvis_ann, coco_caption_ann, coco_instance_ann, return_coco_ann):
         self.data_root = data_root
         self.lvis = LVIS(lvis_ann)
-        self.coco = COCO(coco_ann)
+        self.coco_caption = COCO(coco_caption_ann)
+        self.coco_instance = COCO(coco_instance_ann)
         self.image_ids = self.lvis.get_img_ids()
-        self.coco_img_ids = self.coco.getImgIds()
         self.return_coco_ann = return_coco_ann
 
     def __len__(self):

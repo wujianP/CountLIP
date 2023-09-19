@@ -44,10 +44,13 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
 
 @torch.no_grad()
 def main():
+    from IPython import embed
+    embed()
     dataset = LVISDataset(data_root=args.data_root,
                           lvis_ann=args.lvis_ann,
-                          coco_ann=args.coco_ann,
-                          return_coco_ann=True)
+                          coco_caption_ann=args.coco_caption_ann,
+                          coco_instance_ann=args.coco_instance_ann,
+                          return_coco_ann=args.return_coco_ann)
     dataloader = DataLoader(dataset=dataset,
                             batch_size=args.batch_size,
                             num_workers=args.num_workers,
@@ -69,7 +72,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Explore LVIS Dataset')
     parser.add_argument('--data_root', type=str)
     parser.add_argument('--lvis_ann', type=str)
-    parser.add_argument('--coco_ann', type=str)
+    parser.add_argument('--coco_caption_ann', type=str)
+    parser.add_argument('--coco_instance_ann', type=str)
+    parser.add_argument('--return_coco_ann', type=bool, action='store_true')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
     args = parser.parse_args()
