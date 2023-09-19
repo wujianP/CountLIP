@@ -74,7 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--lvis_ann', type=str)
     parser.add_argument('--coco_caption_ann', type=str)
     parser.add_argument('--coco_instance_ann', type=str)
-    parser.add_argument('--return_coco_ann', type=bool, action='store_true')
+    parser.add_argument('--return_coco_ann', action='store_true')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
     args = parser.parse_args()
