@@ -37,6 +37,8 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
     obj_cnt_str = "\n".join(f"{key}: {value}" for key, value in object_count.items())
     cap_str = "\n\n".join(caps)
 
+    plt.close()
+
     run.log({'Image': wandb.Image(fig_img_box, caption=obj_cnt_str + '\n' + cap_str)})
 
 
