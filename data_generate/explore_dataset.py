@@ -44,8 +44,7 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
 
 @torch.no_grad()
 def main():
-    from IPython import embed
-    embed()
+
     dataset = LVISDataset(data_root=args.data_root,
                           lvis_ann=args.lvis_ann,
                           coco_caption_ann=args.coco_caption_ann,
@@ -80,6 +79,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     wandb.login(key='8cff0498531e0409db5f3c43b52a26b0d068f2dc')
-    run = wandb.init('Explore LVIS Dataset')
+    run = wandb.init('Explore COCO Dataset')
     main()
     wandb.finish()
