@@ -19,20 +19,32 @@ class LVISDataset(Dataset):
         return len(self.image_ids)
 
     def __getitem__(self, idx):
-        # > use annotation from COCO >
-        if self.return_coco_ann:
-            from IPython import embed
-            embed()
-        # > use annotation from LVIS >
-        else:
-            # load image
-            img_id = self.image_ids[idx]
-            img_dict = self.lvis.load_imgs([img_id])[0]
-            img_filename = '/'.join(img_dict['coco_url'].split('/')[-2:])
-            img_path = os.path.join(self.data_root, img_filename)
-            img = Image.open(img_path).convert('RGB')
+        # load image
+        img_id = self.image_ids[idx]
+        img_dict = self.lvis.load_imgs([img_id])[0]
+        img_filename = '/'.join(img_dict['coco_url'].split('/')[-2:])
+        img_path = os.path.join(self.data_root, img_filename)
+        img = Image.open(img_path).convert('RGB')
 
-            # load masks, boxes, areas and categories
+        # load caption
+        captions = [cap['caption'] for cap in self.coco_caption.imgToAnns[img_id]]
+
+        # load mask, box... using annotation from COCO >
+        if self.return_coco_ann:
+            ann_dicts = self.coco_instance.imgToAnns[img_id]
+            boxes, masks, areas, cats = [], [], [], []
+            for ann in ann_dicts:
+                mask = self.coco_instance.annToMask(ann)
+                box = ann['bbox']
+                area = ann['area']
+                cat_id = ann['category_id']
+                cat = self.coco_instance.loadCats(cat_id)[0]['name']
+                boxes.append(box)
+                masks.append(mask)
+                areas.append(area)
+                cats.append(cat)
+        # load mask, box... using annotation from LVIS >
+        else:
             ann_ids = self.lvis.get_ann_ids(img_ids=[img_id])
             ann_dicts = self.lvis.load_anns(ann_ids)
             boxes, masks, areas, cats = [], [], [], []
@@ -46,9 +58,6 @@ class LVISDataset(Dataset):
                 masks.append(mask)
                 areas.append(area)
                 cats.append(cat)
-
-        # load captions
-        captions = [cap['caption'] for cap in self.coco.imgToAnns[img_id]]
 
         return img, boxes, masks, areas, cats, captions
 
