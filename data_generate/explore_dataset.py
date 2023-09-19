@@ -46,7 +46,8 @@ def wandb_visualize(img, boxes, masks, areas, object_count, cats, caps):
 def main():
     dataset = LVISDataset(data_root=args.data_root,
                           lvis_ann=args.lvis_ann,
-                          coco_ann=args.coco_ann)
+                          coco_ann=args.coco_ann,
+                          return_coco_ann=True)
     dataloader = DataLoader(dataset=dataset,
                             batch_size=args.batch_size,
                             num_workers=args.num_workers,
