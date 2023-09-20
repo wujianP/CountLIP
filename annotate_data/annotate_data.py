@@ -4,9 +4,11 @@ generate caption of an image, and then detect the objects, and then generate a c
 import torch
 import wandb
 import argparse
+import torchvision
 
 import matplotlib.pyplot as plt
 import numpy as np
+import torchvision.transforms as TS
 
 import sys
 
@@ -32,6 +34,40 @@ def load_grounding_dino_model(model_config_path, model_checkpoint_path):
     print(load_res)
     _ = model.eval()
     return model.cuda()
+
+
+def get_grounding_output(model, image, caption, box_threshold, text_threshold, with_logits=True):
+    # preprocess captions
+    for k in range(len(caption)):
+        caption[k] = caption[k].lower().strip()
+        if not caption[k].endswith("."):
+            caption[k] = caption[k] + "."
+    # forward grounded dino
+    with torch.no_grad():
+        outputs = model(image, captions=caption)
+    logits = outputs["pred_logits"].cpu().sigmoid()  # (bs, nq, 256)
+    boxes = outputs["pred_boxes"].cpu()  # (bs, nq, 4)
+    # post process
+    boxes_list, scores_list, phrases_list = [], [], []
+    for ub_logits, ub_boxex, cap in zip(logits, boxes, caption):
+        mask = ub_logits.max(dim=1)[0] > box_threshold
+        logits_filtered = ub_logits[mask]  # (n, 256)
+        boxes_filtered = ub_boxex[mask]  # (n, 4)
+        phrases_filtered = []
+        scores_filtered = []
+        for logit, box in zip(logits_filtered, boxes_filtered):
+            # wj: only keep the most confident one
+            posmap = (logit > text_threshold) * (logit == logit.max())
+            pred_phrase = get_phrases_from_posmap(posmap, model.tokenizer(cap), model.tokenizer)
+            if with_logits:
+                phrases_filtered.append(pred_phrase + f"({str(logit.max().item())[:4]})")
+            else:
+                phrases_filtered.append(pred_phrase)
+            scores_filtered.append(logit.max().item())
+        boxes_list.append(boxes_filtered)
+        scores_list.append(torch.Tensor(scores_filtered))
+        phrases_list.append(phrases_filtered)
+    return boxes_list, scores_list, phrases_list
 
 
 def show_box(box, ax, label):
@@ -85,8 +121,6 @@ def main():
     ground_dino_model = load_grounding_dino_model(args.grounded_dino_config, args.grounded_dino_path)
 
     for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
-        from IPython import embed
-        embed()
 
         # BLIP2 caption
         blip_inputs = blip_processor(img_list, return_tensors="pt").to("cuda", torch.float16)
@@ -96,6 +130,45 @@ def main():
         print(blip_captions)
 
         # Grounded-DINO detection
+        trans_grounded = TS.Compose(
+            [
+                TS.Resize((800, 800)),
+                TS.ToTensor(),
+                TS.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            ]
+        )
+        dino_images = torch.stack([trans_grounded(img) for img in img_list], dim=0).cuda()
+
+        from IPython import embed
+        embed()
+
+        # > forward grounded dino >
+        boxes_filt_list, scores_list, pred_phrases_list = get_grounding_output(
+            model=ground_dino_model,
+            image=dino_images,
+            caption=blip_captions,
+            box_threshold=args.box_threshold,
+            text_threshold=args.text_threshold
+        )
+
+        # > post process bounding box >
+        for i in range(len(boxes_filt_list)):
+            H, W = Hs[i], Ws[i]
+            boxes = boxes_filt_list[i]
+            for k in range(boxes.size(0)):
+                boxes[k] = boxes[k] * torch.Tensor([W, H, W, H])
+                boxes[k][:2] -= boxes[k][2:] / 2
+                boxes[k][2:] += boxes[k][:2]
+            boxes_filt_list[i] = boxes.cuda()
+        # > use NMS to handle overlapped boxes >
+        for i in range(args.batch_size):
+            boxes_filt_list[i] = boxes_filt_list[i].cpu()
+            nms_idx = torchvision.ops.nms(boxes_filt_list[i], scores_list[i], args.iou_threshold).numpy().tolist()
+            boxes_filt_list[i] = boxes_filt_list[i][nms_idx].cuda()
+            pred_phrases_list[i] = [pred_phrases_list[i][idx] for idx in nms_idx]
+            # caption = check_caption(tag2text_caption, pred_phrases)
+        # empty cache
+        torch.cuda.empty_cache()
 
         # analysis categories
         object_count_list = [dict(Counter(cats)) for cats in cats_list]
