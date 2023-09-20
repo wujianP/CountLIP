@@ -16,6 +16,23 @@ from torch.utils.data import DataLoader
 from collections import Counter
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 
+# grounded DINO
+from groundingdino.models import build_model
+from groundingdino.util.slconfig import SLConfig
+from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
+
+
+def load_grounding_dino_model(model_config_path, model_checkpoint_path):
+    """load groundingdino model"""
+    cfg = SLConfig.fromfile(model_config_path)
+    cfg.device = "cuda"
+    model = build_model(cfg)
+    checkpoint = torch.load(model_checkpoint_path, map_location="cpu")
+    load_res = model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
+    print(load_res)
+    _ = model.eval()
+    return model.cuda()
+
 
 def show_box(box, ax, label):
     color = np.concatenate([np.random.random(3), np.array([0.8])], axis=0)
@@ -65,6 +82,8 @@ def main():
                                                                cache_dir=args.blip_path,
                                                                device_map="auto")
 
+    ground_dino_model = load_grounding_dino_model(args.grounded_dino_config, args.grounded_dino_path)
+
     for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
         from IPython import embed
         embed()
@@ -90,6 +109,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Annotate Data')
     parser.add_argument('--data_root', type=str)
     parser.add_argument('--blip_path', type=str)
+    parser.add_argument('--grounded_dino_config', type=str)
+    parser.add_argument('--grounded_dino_path', type=str)
     parser.add_argument('--lvis_ann', type=str)
     parser.add_argument('--coco_caption_ann', type=str)
     parser.add_argument('--coco_instance_ann', type=str)
