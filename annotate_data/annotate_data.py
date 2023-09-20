@@ -73,6 +73,7 @@ def main():
         blip_inputs = blip_processor(img_list, return_tensors="pt").to("cuda", torch.float16)
         blip_out = blip_model.generate(**blip_inputs)
         blip_captions = blip_processor.batch_decode(blip_out, skip_special_tokens=True)
+        torch.cuda.empty_cache()
         print(blip_captions)
 
         # Grounded-DINO detection
