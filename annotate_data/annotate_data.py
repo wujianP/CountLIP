@@ -8,6 +8,8 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
+import sys
+sys.path.append('../')
 from dataset import LVISDataset, lvis_collate_fn
 from torch.utils.data import DataLoader
 from collections import Counter
