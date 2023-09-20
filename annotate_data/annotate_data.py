@@ -9,10 +9,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import sys
+
 sys.path.append('../')
 from dataset import LVISDataset, lvis_collate_fn
 from torch.utils.data import DataLoader
 from collections import Counter
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
 
 
 def show_box(box, ax, label):
@@ -55,9 +57,26 @@ def main():
                             pin_memory=True,
                             shuffle=True,
                             collate_fn=lvis_collate_fn)
+
+    blip_processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b",
+                                                    cache_dir=args.blip_path)
+    blip_model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b",
+                                                               torch_dtype=torch.float16,
+                                                               cache_dir=args.blip_path,
+                                                               device_map="auto")
+
     for cur_idx, (img_list, boxes_list, masks_list, areas_list, cats_list, captions_list) in enumerate(dataloader):
         from IPython import embed
         embed()
+
+        # BLIP2 caption
+        blip_inputs = blip_processor(img_list, return_tensors="pt").to("cuda", torch.float16)
+        blip_out = blip_model.generate(**blip_inputs)
+        blip_captions = blip_processor.batch_decode(blip_out, skip_special_tokens=True)
+        print(blip_captions)
+
+        # Grounded-DINO detection
+
         # analysis categories
         object_count_list = [dict(Counter(cats)) for cats in cats_list]
         # visualize
@@ -69,6 +88,7 @@ def main():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Annotate Data')
     parser.add_argument('--data_root', type=str)
+    parser.add_argument('--blip_path', type=str)
     parser.add_argument('--lvis_ann', type=str)
     parser.add_argument('--coco_caption_ann', type=str)
     parser.add_argument('--coco_instance_ann', type=str)
@@ -81,8 +101,7 @@ if __name__ == '__main__':
     main()
     wandb.finish()
 
-
 # img2dataset --url_list metadata/00 --input_format "parquet"\
 #          --url_col "URL" --caption_col "TEXT" --output_format webdataset\
-#            --output_folder laion400m-data --processes_count 32 --thread_count 256 --image_size 256\
-#              --save_additional_columns '["NSFW","similarity","LICENSE"]' --enable_wandb True
+#            --output_folder laion400m-data --processes_count 20 --thread_count 128 --image_size 256\
+#              --save_additional_columns '["NSFW","similarity","LICENSE"]' --enable_wandb False

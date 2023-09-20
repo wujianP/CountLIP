@@ -8,4 +8,5 @@ python annotate_data.py \
 --lvis_ann /DDN_ROOT/wjpeng/dataset/LVIS/annotations/lvis/lvis_v1_train.json \
 --coco_caption_ann /DDN_ROOT/wjpeng/dataset/LVIS/annotations/coco/captions_train2017.json \
 --coco_instance_ann /DDN_ROOT/wjpeng/dataset/LVIS/annotations/coco/instances_train2017.json \
+--blip_path /discobox/wjpeng/weights/blip2 \
 --return_coco_ann
