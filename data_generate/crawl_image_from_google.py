@@ -21,14 +21,14 @@ if __name__ == '__main__':
     for num in numbers:
         for cat in categories:
 
-            query = f'a photo of {num} {cat}'
+            query = f'{num} {cat}'
             print(f'#########################  Begin downloading {query}  ##########################')
 
             os.makedirs(os.path.join(root_dir, num), exist_ok=True)
             cur_dir = os.path.join(root_dir, num, cat.replace(' ', '_'))
             os.makedirs(cur_dir, exist_ok=True)
 
-            my_downloader.directory = cur_dir
+            my_downloader.directory = os.path.join(root_dir, num)
 
             my_downloader.download(keywords=query, limit=50, download_cache=True)
 
