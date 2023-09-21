@@ -34,4 +34,6 @@ if __name__ == '__main__':
     keyword = 'cats'
     num_images_per_category = 10
     save_dir = '/DDN_ROOT/wjpeng/dataset/countBench'
+    print('Begin')
     download_images(keyword, num_images_per_category, save_dir)
+    print('Finish')
