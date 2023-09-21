@@ -1,5 +1,6 @@
 """
 This script is used to download images from the internet
+with the help of Github Repo: https://github.com/RiddlerQ/simple_image_download
 """
 import os
 
