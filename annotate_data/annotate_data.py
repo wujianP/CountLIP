@@ -148,8 +148,8 @@ def main():
             image=dino_images,
             caption=blip_captions,
             box_threshold=args.box_threshold,
-            text_threshold=args.text_threshold
-        )
+            text_threshold=args.text_threshold)
+        torch.cuda.empty_cache()
 
         # > post process bounding box >
         for i in range(len(boxes_filt_list)):
