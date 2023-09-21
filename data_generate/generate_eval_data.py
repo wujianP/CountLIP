@@ -45,6 +45,18 @@ def explore_fsc147(enable_wandb=False):
     return metadata
 
 
+def volume_up_fsc147(info):
+    from IPython import embed
+    embed()
+    cnt2imgs = {}
+    for img, ann in info.items():
+        cnt = ann['count']
+        if cnt in cnt2imgs.keys():
+            cnt2imgs[cnt].append(img)
+        else:
+            cnt2imgs[cnt] = [img]
+
+
 if __name__ == '__main__':
     img_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/images_384_VarV2'
     ann_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/annotations'
@@ -53,5 +65,8 @@ if __name__ == '__main__':
     run = wandb.init('FSC-147')
 
     datainfo = explore_fsc147()
+
+    volume_up_fsc147(datainfo)
+
     from IPython import embed
     embed()
