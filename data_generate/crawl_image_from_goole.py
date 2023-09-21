@@ -24,6 +24,8 @@ def download_images(query, num_images, save_dir):
 
     # 循环下载图片
     for i, img_tag in enumerate(image_tags[:num_images]):
+        from IPython import embed
+        embed()
         img_url = img_tag['src']  # 提取图片URL
         img_data = requests.get(img_url).content  # 发送请求获取图片数据
         with open(os.path.join(save_dir, f'{query}_{i + 1}.jpg'), 'wb') as f:  # 保存图片数据到文件
