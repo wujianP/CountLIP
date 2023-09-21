@@ -78,7 +78,7 @@ class Downloader:
         if extensions:
             self._extensions = set(*[extensions])
         else:
-            self._extensions = {'.jpg', '.png', '.ico', '.gif', '.jpeg'}
+            self._extensions = {'.jpg', '.png', '.jpeg'}
         self._directory = "simple_images/"
         self.get_dirs = set()
         self._cached_urls = {}
