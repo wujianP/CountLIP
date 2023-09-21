@@ -30,6 +30,6 @@ if __name__ == '__main__':
 
             my_downloader.directory = os.path.join(root_dir, num)
 
-            my_downloader.download(keywords=query, limit=50, download_cache=True)
+            my_downloader.download(keywords=query, limit=50)
 
             my_downloader.flush_cache()

@@ -154,6 +154,8 @@ class Downloader:
             content = self._cached_urls
             if not content:
                 print('Downloader has not URLs saved in Memory yet, run Downloader.search_urls to find pics first')
+        from IPython import embed
+        embed()
         for name, (path, url) in content.items():
             with open(os.path.join(path, name), 'wb') as file:
                 file.write(url.content)
