@@ -5,11 +5,8 @@ import json
 
 from PIL import Image
 
-img_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/images_384_VarV2'
-ann_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/annotations'
 
-
-def explore_fsc147():
+def explore_fsc147(enable_wandb=False):
     
     img_filenames = os.listdir(img_root)
     random.shuffle(img_filenames)
@@ -28,6 +25,7 @@ def explore_fsc147():
         anns = json.load(f)
     f.close()
 
+    metadata = {}
     for img_filename in img_filenames:
         path = os.path.join(img_root, img_filename)
         img = Image.open(path).convert('RGB')
@@ -35,15 +33,25 @@ def explore_fsc147():
         ann = anns[img_filename]
         points = ann['points']
         count = len(points)
-        ann['count'] = count
 
-        run.log({'FSC-147': wandb.Image(img, caption=f'class: {cls}  -- count: {count}')})
+        metadata[path] = {
+            'class': cls,
+            'count': count
+        }
 
-    from IPython import embed
-    embed()
+        if enable_wandb:
+            run.log({'FSC-147': wandb.Image(img, caption=f'class: {cls}  -- count: {count}')})
+
+    return metadata
 
 
 if __name__ == '__main__':
+    img_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/images_384_VarV2'
+    ann_root = '/DDN_ROOT/wjpeng/dataset/FSC-147/annotations'
+
     wandb.login()
     run = wandb.init('FSC-147')
-    explore_fsc147()
+
+    datainfo = explore_fsc147()
+    from IPython import embed
+    embed()
