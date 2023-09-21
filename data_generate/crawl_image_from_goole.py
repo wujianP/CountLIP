@@ -22,10 +22,10 @@ def download_images(query, num_images, save_dir):
 
     os.makedirs(save_dir, exist_ok=True)  # 创建保存目录
 
+    from IPython import embed
+    embed()
     # 循环下载图片
     for i, img_tag in enumerate(image_tags[:num_images]):
-        from IPython import embed
-        embed()
         img_url = img_tag['src']  # 提取图片URL
         img_data = requests.get(img_url).content  # 发送请求获取图片数据
         with open(os.path.join(save_dir, f'{query}_{i + 1}.jpg'), 'wb') as f:  # 保存图片数据到文件
