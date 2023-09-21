@@ -21,7 +21,7 @@ if __name__ == '__main__':
     for num in numbers:
         for cat in categories:
 
-            query = f's photo of {num} {cat}'
+            query = f'a photo of {num} {cat}'
             print(f'#########################  Begin downloading {query}  ##########################')
 
             os.makedirs(os.path.join(root_dir, num), exist_ok=True)

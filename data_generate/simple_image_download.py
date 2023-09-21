@@ -169,7 +169,7 @@ class Downloader:
                 pass
             img2url[name] = urls[idx]
             idx += 1
-        with open(os.path.join(self.directory, 'urls'), 'w') as fs:
+        with open(os.path.join(self.directory, 'urls.json'), 'w') as fs:
             json.dump(img2url, fs, indent=4)
         fs.close()
 
