@@ -103,7 +103,6 @@ class Downloader:
     def extensions(self, value):
         self._extensions = set([value])
 
-
     def get_urls(self):
         return [self._cached_urls[url][1].url
                 for url in self._cached_urls]

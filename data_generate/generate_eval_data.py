@@ -46,8 +46,6 @@ def explore_fsc147(enable_wandb=False):
 
 
 def volume_up_fsc147(info):
-    from IPython import embed
-    embed()
     cnt2imgs = {}
     for img, ann in info.items():
         cnt = ann['count']
@@ -55,6 +53,7 @@ def volume_up_fsc147(info):
             cnt2imgs[cnt].append(img)
         else:
             cnt2imgs[cnt] = [img]
+    return cnt2imgs
 
 
 if __name__ == '__main__':
@@ -66,7 +65,7 @@ if __name__ == '__main__':
 
     datainfo = explore_fsc147()
 
-    volume_up_fsc147(datainfo)
+    countinfo = volume_up_fsc147(datainfo)
 
     from IPython import embed
     embed()
