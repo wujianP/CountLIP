@@ -18,7 +18,7 @@ def download_images(query, num_images, save_dir):
     soup = BeautifulSoup(response.text, 'html.parser')  # 使用Beautiful Soup解析网页
 
     # 找到所有图片的img标签
-    image_tags = soup.find_all('img', {'class': 't0fcAb'})
+    image_tags = soup.select('img.rg_i')
 
     os.makedirs(save_dir, exist_ok=True)  # 创建保存目录
 
