@@ -5,6 +5,7 @@ import magic
 import progressbar
 from urllib.parse import quote
 import random
+import json
 from requests.exceptions import ReadTimeout
 import functools
 import time
@@ -154,15 +155,23 @@ class Downloader:
             content = self._cached_urls
             if not content:
                 print('Downloader has not URLs saved in Memory yet, run Downloader.search_urls to find pics first')
-        from IPython import embed
-        embed()
+
+        urls = self.get_urls()
+        img2url = {}
+        idx = 0
         for name, (path, url) in content.items():
-            with open(os.path.join(path, name), 'wb') as file:
+            name = f'{idx:03d}.{name.split(".")[-1]}'
+            with open(os.path.join(self.directory, name), 'wb') as file:
                 file.write(url.content)
             if verbose:
                 print(f'File Name={name}, Downloaded from {url.url}')
             else:
                 pass
+            img2url[name] = urls[idx]
+            idx += 1
+        with open(os.path.join(self.directory, 'urls'), 'w') as fs:
+            json.dump(img2url, fs, indent=4)
+        fs.close()
 
     def _create_directories(self, name):
         dir_path = os.path.join(self._directory, name)
