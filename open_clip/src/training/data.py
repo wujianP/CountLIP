@@ -527,16 +527,18 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 
 # >>> start: added by wjpeng >>>
 class CountDataset(Dataset):
-    def __init__(self, data_root, hard_num, transform):
+    def __init__(self, data_root, hard_num, transform, empty_fill_type):
         """
         This is designed for ImageNet-Boxes
         :param data_root: the root path of the dataset, default: /dev/shm/imagenet
         :param hard_num: the number of hard negatives per sample
         :param transform: image transformation
+        :param empty_fill_type what value to fill in the empty region
         """
         self.data_root = data_root
         self.hard_num = hard_num
         self.transform = transform
+        self.empty_fill_type = empty_fill_type
         self.inflector = inflect.engine()
         # imagenet class id to class name, eg: 'n01440764' -> ['tench', 'Tinca tinca']
         self.id2class = {}
@@ -572,8 +574,18 @@ class CountDataset(Dataset):
         obj_region = obj_region.resize((obj_w, obj_h))
 
         # Create a 224x224 black canvas
-        canvas = Image.new('RGB', (224, 224), 0)
-        draw = ImageDraw.Draw(canvas)
+        if self.empty_fill_type == 'white':
+            canvas = Image.new('RGB', (224, 224), 255)
+        elif self.empty_fill_type == 'black':
+            canvas = Image.new('RGB', (224, 224), 0)
+        elif self.empty_fill_type == 'mean':
+            mean_value = int(np.array(obj_region).mean())
+            canvas = Image.new('RGB', (224, 224), mean_value)
+        elif self.empty_fill_type == 'gaussian':
+            random_pixels = np.random.randint(0, 255, size=(224, 224, 3), dtype=np.uint8)
+            canvas = Image.fromarray(random_pixels)
+        else:
+            raise KeyError()
 
         # Randomly select obj_num cells
         selected_cells = random.sample(range(grid_size * grid_size), obj_num)
