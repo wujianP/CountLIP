@@ -5,6 +5,7 @@ import math
 import os
 import random
 import sys
+import inflect
 import braceexpand
 from dataclasses import dataclass
 from multiprocessing import Value
@@ -536,6 +537,7 @@ class CountDataset(Dataset):
         self.data_root = data_root
         self.hard_num = hard_num
         self.transform = transform
+        self.inflector = inflect.engine()
         # imagenet class id to class name, eg: 'n01440764' -> ['tench', 'Tinca tinca']
         self.id2class = {}
         with open(os.path.join(data_root, 'id2class.txt'), 'r') as file:
@@ -615,7 +617,7 @@ class CountDataset(Dataset):
             if self.transform is not None:
                 spliced_img = spliced_img.transform(spliced_img)
             images.append(spliced_img)
-            texts.append(f'a photo of {object_num} {class_name}')
+            texts.append(f'a photo of {self.inflector.number_to_words(object_num)} {self.inflector.plural(class_name)}')
 
         return images, texts
 
