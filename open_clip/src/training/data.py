@@ -563,6 +563,7 @@ class CountDataset(Dataset):
         w, h = obj_region.size
         obj_resize_ratio = cell_width / max(w, h)
         obj_w, obj_h = obj_resize_ratio * w, obj_resize_ratio * h
+        obj_w, obj_h = int(obj_w), int(obj_h)
         obj_region = obj_region.resize((obj_w, obj_h))
 
         # Create a 224x224 black canvas
@@ -606,6 +607,8 @@ class CountDataset(Dataset):
         embed()
         # generate n spliced images
         for i in range(self.hard_num):
+            from IPython import embed
+            embed()
             object_num = random.randint(1, 10)
             spliced_image = self.splice_image(obj_region=object_region, obj_num=object_num)
 
