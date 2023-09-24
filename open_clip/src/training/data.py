@@ -553,7 +553,7 @@ class CountDataset(Dataset):
     def __len__(self):
         return len(self.image_name_list)
 
-    def splice_image(self, obj_region, obj_num):
+    def splice_image(self, obj_region, obj_num, keep_ratio=False):
         # divide the whole image into (grid_size x grid_size) grid, each cell with size cell_width
         grid_size = math.ceil(math.sqrt(obj_num))
         # FIXME: depends on the input resolution of your model, 224 for CLIP here
@@ -561,9 +561,12 @@ class CountDataset(Dataset):
 
         # resize the input object region
         w, h = obj_region.size
-        obj_resize_ratio = cell_width / max(w, h)
-        obj_w, obj_h = obj_resize_ratio * w, obj_resize_ratio * h
-        obj_w, obj_h = int(obj_w), int(obj_h)
+        if keep_ratio:
+            obj_resize_ratio = cell_width / max(w, h)
+            obj_w, obj_h = obj_resize_ratio * w, obj_resize_ratio * h
+            obj_w, obj_h = int(obj_w), int(obj_h)
+        else:
+            obj_w, obj_h = cell_width, cell_width
         obj_region = obj_region.resize((obj_w, obj_h))
 
         # Create a 224x224 black canvas
@@ -604,11 +607,17 @@ class CountDataset(Dataset):
         object_region = image.crop((x_min, y_min, x_max, y_max))
 
         # generate n spliced images
+        spliced_images = []
         for i in range(self.hard_num):
-            from IPython import embed
-            embed()
             object_num = random.randint(1, 10)
-            spliced_image = self.splice_image(obj_region=object_region, obj_num=object_num)
+            spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num)
+            spliced_images.append({
+                'object_num': object_num,
+                'spliced_image': spliced_img
+            })
+        from IPython import embed
+        embed()
+
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
