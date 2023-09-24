@@ -78,7 +78,7 @@ def expand_urls(urls, weights=None):
     if isinstance(urls, str):
         urllist = urls.split("::")
         weights = weights.split('::')
-        assert len(weights) == len(urllist),\
+        assert len(weights) == len(urllist), \
             f"Expected the number of data components ({len(urllist)}) and weights({len(weights)}) to match."
         weights = [float(weight) for weight in weights]
         all_urls, all_weights = [], []
@@ -275,13 +275,13 @@ class ResampledShards2(IterableDataset):
     """An iterable dataset yielding a list of urls."""
 
     def __init__(
-        self,
-        urls,
-        weights=None,
-        nshards=sys.maxsize,
-        worker_seed=None,
-        deterministic=False,
-        epoch=-1,
+            self,
+            urls,
+            weights=None,
+            nshards=sys.maxsize,
+            worker_seed=None,
+            deterministic=False,
+            epoch=-1,
     ):
         """Sample shards from the shard list with replacement.
 
@@ -292,7 +292,7 @@ class ResampledShards2(IterableDataset):
         self.urls = urls
         self.weights = weights
         if self.weights is not None:
-            assert len(self.urls) == len(self.weights),\
+            assert len(self.urls) == len(self.weights), \
                 f"Number of urls {len(self.urls)} and weights {len(self.weights)} should match."
         assert isinstance(self.urls[0], str)
         self.nshards = nshards
@@ -342,10 +342,10 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
                     'Please specify it via `--train-num-samples` if no dataset length info is present.')
     else:
         # Eval will just exhaust the iterator if the size is not specified.
-        num_samples = args.val_num_samples or 0 
+        num_samples = args.val_num_samples or 0
 
     shared_epoch = SharedEpoch(epoch=epoch)  # create a shared epoch store to sync epoch to dataloader worker proc
-    
+
     if resampled:
         pipeline = [ResampledShards2(
             input_shards,
@@ -354,7 +354,7 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
             epoch=shared_epoch,
         )]
     else:
-        assert args.train_data_upsampling_factors is None,\
+        assert args.train_data_upsampling_factors is None, \
             "--train_data_upsampling_factors is only supported when sampling with replacement (with --dataset-resampled)."
         pipeline = [wds.SimpleShardList(input_shards)]
 
@@ -522,6 +522,36 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
     return DataInfo(dataloader, sampler)
 
 
+# >>> start: added by wjpeng >>>
+class CountDataset(Dataset):
+    def __init__(self, data_root, hard_num, transform):
+        """
+        :param data_root: the root path of the dataset, default: /dev/shm/imagenet
+        :param hard_num: the number of hard negatives per sample
+        :param transform: image transformation
+        """
+        self.data_root = data_root
+        self.hard_num = hard_num
+        self.transform = transform
+        # imagenet class id to class name, eg: n01440764 -> tench, Tinca tinca
+        self.id2class = {}
+        with open(os.path.join(data_root, 'id2class.txt'), 'r') as file:
+            for line in file.readlines():
+                classId, className = line.strip().split(' ')
+                self.id2class[classId] = className
+        from IPython import embed
+        embed()
+    def __len__(self):
+        pass
+
+    def __getitem__(self, idx):
+        pass
+
+
+def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
+
+
+
 def get_dataset_fn(data_path, dataset_type):
     if dataset_type == "webdataset":
         return get_wds_dataset
@@ -529,6 +559,8 @@ def get_dataset_fn(data_path, dataset_type):
         return get_csv_dataset
     elif dataset_type == "synthetic":
         return get_synthetic_dataset
+    elif dataset_type == 'count':
+        return get_count_dataset
     elif dataset_type == "auto":
         ext = data_path.split('.')[-1]
         if ext in ['csv', 'tsv']:
@@ -540,7 +572,7 @@ def get_dataset_fn(data_path, dataset_type):
                 f"Tried to figure out dataset type, but failed for extension {ext}.")
     else:
         raise ValueError(f"Unsupported dataset type: {dataset_type}")
-    
+
 
 def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
     preprocess_train, preprocess_val = preprocess_fns
