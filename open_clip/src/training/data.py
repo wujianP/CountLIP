@@ -526,6 +526,7 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 class CountDataset(Dataset):
     def __init__(self, data_root, hard_num, transform):
         """
+        This is designed for ImageNet-Boxes
         :param data_root: the root path of the dataset, default: /dev/shm/imagenet
         :param hard_num: the number of hard negatives per sample
         :param transform: image transformation
@@ -533,20 +534,27 @@ class CountDataset(Dataset):
         self.data_root = data_root
         self.hard_num = hard_num
         self.transform = transform
-        # imagenet class id to class name, eg: n01440764 -> tench, Tinca tinca
+        # imagenet class id to class name, eg: 'n01440764' -> ['tench', 'Tinca tinca']
         self.id2class = {}
-        from IPython import embed
-        embed()
         with open(os.path.join(data_root, 'id2class.txt'), 'r') as file:
             for line in file.readlines():
-                classId, className = line.strip().split(' ')
+                classId = line.strip()[:9]
+                className = line.strip()[10:].split(', ')
                 self.id2class[classId] = className
 
+        # imagenet file list, ['n02791124_6215.JPEG', ..., 'n02791124_9967.JPEG', ...]
+        self.image_name_list = []
+        for class_id in os.listdir(os.path.join(data_root, 'boxes')):
+            for img_name in os.listdir(os.path.join(data_root, 'boxes', class_id)):
+                self.image_name_list.append(img_name)
+
     def __len__(self):
-        pass
+        return len(self.image_name_list)
 
     def __getitem__(self, idx):
-        pass
+        image_name = self.image_name_list[idx]
+        from IPython import embed
+        embed()
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
