@@ -607,17 +607,17 @@ class CountDataset(Dataset):
         object_region = image.crop((x_min, y_min, x_max, y_max))
 
         # generate n spliced images
-        spliced_images = []
+        images = []
+        texts = []
         for i in range(self.hard_num):
             object_num = random.randint(1, 10)
             spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num)
-            spliced_images.append({
-                'object_num': object_num,
-                'spliced_image': spliced_img
-            })
-        from IPython import embed
-        embed()
+            if self.transform is not None:
+                spliced_img = spliced_img.transform(spliced_img)
+            images.append(spliced_img)
+            texts.append(f'a photo of {object_num} {class_name}')
 
+        return images, texts
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
