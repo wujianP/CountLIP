@@ -535,12 +535,12 @@ class CountDataset(Dataset):
         self.transform = transform
         # imagenet class id to class name, eg: n01440764 -> tench, Tinca tinca
         self.id2class = {}
+        from IPython import embed
+        embed()
         with open(os.path.join(data_root, 'id2class.txt'), 'r') as file:
             for line in file.readlines():
                 classId, className = line.strip().split(' ')
                 self.id2class[classId] = className
-        from IPython import embed
-        embed()
 
     def __len__(self):
         pass
