@@ -603,8 +603,6 @@ class CountDataset(Dataset):
         y_max = int(box_ann.find('object').find('bndbox').find('ymax').text)
         object_region = image.crop((x_min, y_min, x_max, y_max))
 
-        from IPython import embed
-        embed()
         # generate n spliced images
         for i in range(self.hard_num):
             from IPython import embed
