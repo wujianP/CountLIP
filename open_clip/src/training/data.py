@@ -13,8 +13,10 @@ import numpy as np
 import pandas as pd
 import torch
 import torchvision.datasets as datasets
+import wandb
 import webdataset as wds
-from PIL import Image
+import xml.etree.ElementTree as ET
+from PIL import Image, ImageDraw
 from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler, IterableDataset, get_worker_info
 from torch.utils.data.distributed import DistributedSampler
 from webdataset.filters import _shuffle
@@ -546,15 +548,66 @@ class CountDataset(Dataset):
         self.image_name_list = []
         for class_id in os.listdir(os.path.join(data_root, 'boxes')):
             for img_name in os.listdir(os.path.join(data_root, 'boxes', class_id)):
-                self.image_name_list.append(img_name)
+                self.image_name_list.append(img_name.split('.')[0])
 
     def __len__(self):
         return len(self.image_name_list)
 
+    def splice_image(self, obj_region, obj_num):
+        # divide the whole image into (grid_size x grid_size) grid, each cell with size cell_width
+        grid_size = math.ceil(math.sqrt(obj_num))
+        # FIXME: depends on the input resolution of your model, 224 for CLIP here
+        cell_width = math.floor(224 / grid_size)
+
+        # resize the input object region
+        w, h = obj_region.size
+        obj_resize_ratio = cell_width / max(w, h)
+        obj_w, obj_h = obj_resize_ratio * w, obj_resize_ratio * h
+        obj_region = obj_region.resize((obj_w, obj_h))
+
+        # Create a 224x224 black canvas
+        canvas = Image.new('RGB', (224, 224), 0)
+        draw = ImageDraw.Draw(canvas)
+
+        # Randomly select obj_num cells
+        selected_cells = random.sample(range(grid_size * grid_size), obj_num)
+
+        # Fill the selected cells
+        for cell in selected_cells:
+            row = cell // grid_size
+            col = cell % grid_size
+            x1 = col * cell_width
+            y1 = row * cell_width
+            x2 = x1 + obj_w
+            y2 = y1 + obj_h
+            fill_region = (x1, y1, x2, y2)
+            canvas.paste(obj_region, fill_region)
+
+        return canvas
+
     def __getitem__(self, idx):
         image_name = self.image_name_list[idx]
+        class_id = image_name.split('_')[0]
+
+        class_name = random.choice(self.id2class[class_id])
+
+        image_path = os.path.join(self.data_root, 'train', class_id, image_name) + '.JPEG'
+        image = Image.open(image_path).convert('RGB')
+
+        box_path = os.path.join(self.data_root, 'boxes', class_id, image_name) + '.xml'
+        box_ann = ET.parse(box_path).getroot()
+        x_min = int(box_ann.find('object').find('bndbox').find('xmin').text)
+        y_min = int(box_ann.find('object').find('bndbox').find('ymin').text)
+        x_max = int(box_ann.find('object').find('bndbox').find('xmax').text)
+        y_max = int(box_ann.find('object').find('bndbox').find('ymax').text)
+        object_region = image.crop((x_min, y_min, x_max, y_max))
+
         from IPython import embed
         embed()
+        # generate n spliced images
+        for i in range(self.hard_num):
+            object_num = random.randint(1, 10)
+            spliced_image = self.splice_image(obj_region=object_region, obj_num=object_num)
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
