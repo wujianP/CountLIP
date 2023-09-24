@@ -541,6 +541,7 @@ class CountDataset(Dataset):
                 self.id2class[classId] = className
         from IPython import embed
         embed()
+
     def __len__(self):
         pass
 
@@ -549,7 +550,7 @@ class CountDataset(Dataset):
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
-
+    pass
 
 
 def get_dataset_fn(data_path, dataset_type):
