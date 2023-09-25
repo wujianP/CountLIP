@@ -423,8 +423,8 @@ def main(args):
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
-        from IPython import embed
-        embed()
+        from IPython.core.debugger import set_trace
+        set_trace()
         train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=writer)
         completed_epoch = epoch + 1
 
