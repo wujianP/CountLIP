@@ -421,6 +421,8 @@ def main(args):
     loss = create_loss(args)
 
     for epoch in range(start_epoch, args.epochs):
+        from IPython import embed
+        embed()
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
         train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=writer)
