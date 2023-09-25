@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 }
                 json.dump(ret, txt_file, indent=4)
         except:
-            print(f"下载失败：{image_url}"
+            print(f"下载失败：{image_url}")
 
         print(f'[{idx + 1} / {len(dataset_raw)} ({(idx + 1) / len(dataset_raw) * 100:.2f} %)]')
 
