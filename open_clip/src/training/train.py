@@ -89,6 +89,9 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         if not args.skip_scheduler:
             scheduler(step)
 
+        from IPython import embed
+        embed()
+
         images, texts = batch
         images = images.to(device=device, dtype=input_dtype, non_blocking=True)
         texts = texts.to(device=device, non_blocking=True)
