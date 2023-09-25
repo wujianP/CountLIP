@@ -699,8 +699,6 @@ def get_dataset_fn(data_path, dataset_type):
 
 
 def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
-    from IPython import embed
-    embed()
     preprocess_train, preprocess_val = preprocess_fns
     data = {}
 
@@ -719,3 +717,8 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
         data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
 
     return data
+
+if __name__ == '__main__':
+
+    from IPython import embed
+    embed()

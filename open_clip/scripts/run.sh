@@ -4,7 +4,7 @@ conda activate /discobox/wjpeng/env/countLIP
 cd /discobox/wjpeng/code/202306/CountLIP/open_clip/src/training
 git pull
 rm -rf /DDN_ROOT/wjpeng/ckp/CountLIP/debug
-CUDA_VISIBLE_DEVICES=0 python main.py \
+CUDA_VISIBLE_DEVICES=0 python -m main \
     --dataset-type="count" \
     --data-root /dev/shm/imagenet \
     --train-data="zhan-wei-fu" \
