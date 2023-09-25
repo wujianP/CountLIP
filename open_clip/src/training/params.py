@@ -61,7 +61,7 @@ def parse_args(args):
     )
     parser.add_argument(
         "--dataset-type",
-        choices=["webdataset", "csv", "synthetic", "auto"],
+        choices=["webdataset", "csv", "synthetic", "auto", "count"],
         default="auto",
         help="Which type of dataset to process."
     )
@@ -442,6 +442,28 @@ def parse_args(args):
         action="store_true",
         help='Use SigLip (sigmoid) loss.'
     )
+
+    # >>> added by countLIP >>>
+    parser.add_argument(
+        "--data-root",
+        type=str,
+        default='/dev/shm/imagenet',
+        help='the root path to imagenet dataset'
+    )
+    parser.add_argument(
+        "--hard-num",
+        type=int,
+        default=2,
+        help='the number of hard examples per sample'
+    )
+    parser.add_argument(
+        "--empty-fill-type",
+        type=str,
+        choices=['white', 'black', 'mean', 'gaussian'],
+        default='mean',
+        help='The pixel value for empty patches'
+    )
+    # <<< added by countLIP <<<
     args = parser.parse_args(args)
 
     # If some params are not passed, we use the default values based on model name.

@@ -12,6 +12,7 @@ from multiprocessing import Value
 
 import numpy as np
 import pandas as pd
+import torchvision.transforms as trans
 import torch
 import torchvision.datasets as datasets
 import wandb
@@ -527,7 +528,7 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 
 # >>> start: added by wjpeng >>>
 class CountDataset(Dataset):
-    def __init__(self, data_root, hard_num, transform, empty_fill_type):
+    def __init__(self, data_root, hard_num, transform, empty_fill_type, tokenizer):
         """
         This is designed for ImageNet-Boxes
         :param data_root: the root path of the dataset, default: /dev/shm/imagenet
@@ -538,6 +539,7 @@ class CountDataset(Dataset):
         self.data_root = data_root
         self.hard_num = hard_num
         self.transform = transform
+        self.tokenize = tokenizer
         self.empty_fill_type = empty_fill_type
         self.inflector = inflect.engine()
         # imagenet class id to class name, eg: 'n01440764' -> ['tench', 'Tinca tinca']
@@ -624,21 +626,54 @@ class CountDataset(Dataset):
         object_region = image.crop((x_min, y_min, x_max, y_max))
 
         # generate n spliced images
+        object_nums = random.sample(range(1, 11), self.hard_num)
         images = []
         texts = []
         for i in range(self.hard_num):
-            object_num = random.randint(1, 10)
+            object_num = object_nums[i]
             spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num)
             if self.transform is not None:
                 spliced_img = self.transform(spliced_img)
             images.append(spliced_img)
             texts.append(f'a photo of {self.inflector.number_to_words(object_num)} {self.inflector.plural(class_name)}')
 
+        texts = self.tokenize(texts)
+
         return images, texts
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
-    pass
+    # FIXME: check this, this is only useful for CLIP model
+    transform_fn = trans.Compose([
+        trans.Resize((224, 224)),
+        preprocess_fn.transforms[-3],
+        preprocess_fn.transforms[-2],
+        preprocess_fn.transforms[-1]
+    ])
+    dataset = CountDataset(data_root=args.data_root,
+                           hard_num=args.hard_num,
+                           transform=transform_fn,
+                           empty_fill_type=args.empty_fill_type,
+                           tokenizer=tokenizer)
+
+    num_samples = len(dataset)
+    sampler = DistributedSampler(dataset) if args.distributed and is_train else None
+    shuffle = is_train and sampler is None
+
+    dataloader = DataLoader(
+        dataset=dataset,
+        batch_size=args.batch_size,
+        shuffle=shuffle,
+        num_workers=args.workers,
+        pin_memory=True,
+        sampler=sampler,
+        drop_last=is_train,
+    )
+    dataloader.num_samples = num_samples
+    dataloader.num_batches = len(dataloader)
+
+    return DataInfo(dataloader, sampler)
+# <<< end: added by wjpeng <<<
 
 
 def get_dataset_fn(data_path, dataset_type):
