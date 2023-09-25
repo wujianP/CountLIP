@@ -1,4 +1,6 @@
 import json
+
+import numpy as np
 import requests
 import os
 import inflect
@@ -15,20 +17,34 @@ if __name__ == '__main__':
     with open(dataset_file, 'r') as file:
         dataset_raw = json.load(file)
 
-    from IPython import embed
-    embed()
-
-    for entry in dataset_raw:
+    per_number_cnt = [0] * 10
+    for idx, entry in enumerate(dataset_raw):
         image_url = entry['image_url']
+        text = entry['text']
+        number = entry['number']
+        number_word = p.number_to_words(number)
+
         response = requests.get(image_url)
 
         if response.status_code == 200:
             # 提取文件名
-            filename = os.path.join('images', os.path.basename(image_url))
+            image_filename = os.path.join(output_dir, number_word, f'{per_number_cnt[number]:02d}.jpg')
+            ann_filename = os.path.join(output_dir, number_word, f'{per_number_cnt[number]:02d}.json')
+            per_number_cnt[number] += 1
 
             # 保存图片
-            with open(filename, 'wb') as img_file:
+            with open(image_filename, 'wb') as img_file:
                 img_file.write(response.content)
-                print(f"下载成功：{filename}")
+            # 保存文本
+            with open(ann_filename, 'wb') as txt_file:
+                ret = {
+                    'number': number,
+                    'text': text,
+                }
+                json.dump(ret, indent=4)
         else:
-            print(f"下载失败，状态码：{response.status_code}")
+            print(f"下载失败：{image_url}")
+
+    print(f'下载完成：'
+          f'\ntotal: {np.array(per_number_cnt).sum()}'
+          f'\nper number: {per_number_cnt}')
