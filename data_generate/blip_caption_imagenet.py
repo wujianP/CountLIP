@@ -1,4 +1,5 @@
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
+# from dataset import ImageNet
 
 import torch
 import argparse
@@ -8,11 +9,11 @@ import argparse
 def main():
     # load model
     processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b",
-                                               cache_dir='/discobox/wjpeng/weights/blip2')
+                                               cache_dir=args.model_path)
     model = Blip2ForConditionalGeneration.from_pretrained(
         "Salesforce/blip2-opt-2.7b",
         torch_dtype=torch.float32,
-        cache_dir='/discobox/wjpeng/weights/blip2')
+        cache_dir=args.model_path)
     model.cuda()
 
     # load dataset
@@ -29,6 +30,11 @@ def main():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser('BLIP caption ImageNet')
+    parser.add_argument('--data_root', type=str, default='/dev/shm/imagenet/train')
+    parser.add_argument('--batch_size', type=int, default=8)
+    parser.add_argument('--num_workers', type=int, default=8)
+    parser.add_argument('--model_path', type=str, default='/discobox/wjpeng/weights/blip2')
+    args = parser.parse_args()
     device = 'cuda'
     main()
-
