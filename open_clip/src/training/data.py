@@ -638,9 +638,8 @@ class CountDataset(Dataset):
             texts.append(f'a photo of {self.inflector.number_to_words(object_num)} {self.inflector.plural(class_name)}')
 
         texts = self.tokenize(texts)
+        texts = [texts[i] for i in range(self.hard_num)]
 
-        from IPython import embed
-        embed()
         # convert two list into a tuple (hard-img-1, ..., hard-img-n, text-1, ..., text-n)
         ret = tuple(images + texts)
 
