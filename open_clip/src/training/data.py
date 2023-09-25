@@ -575,12 +575,15 @@ class CountDataset(Dataset):
 
         # Create a 224x224 black canvas
         if self.empty_fill_type == 'white':
-            canvas = Image.new('RGB', (224, 224), 255)
+            canvas = Image.new('RGB', (224, 224), 'white')
         elif self.empty_fill_type == 'black':
             canvas = Image.new('RGB', (224, 224), 0)
         elif self.empty_fill_type == 'mean':
-            mean_value = int(np.array(obj_region).mean())
-            canvas = Image.new('RGB', (224, 224), mean_value)
+            np_img = np.array(obj_region)
+            mean_r = int(np.mean(np_img[:, :, 0]))
+            mean_g = int(np.mean(np_img[:, :, 1]))
+            mean_b = int(np.mean(np_img[:, :, 2]))
+            canvas = Image.new('RGB', (224, 224), (mean_r, mean_g, mean_b))
         elif self.empty_fill_type == 'gaussian':
             random_pixels = np.random.randint(0, 255, size=(224, 224, 3), dtype=np.uint8)
             canvas = Image.fromarray(random_pixels)
@@ -627,7 +630,7 @@ class CountDataset(Dataset):
             object_num = random.randint(1, 10)
             spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num)
             if self.transform is not None:
-                spliced_img = spliced_img.transform(spliced_img)
+                spliced_img = self.transform(spliced_img)
             images.append(spliced_img)
             texts.append(f'a photo of {self.inflector.number_to_words(object_num)} {self.inflector.plural(class_name)}')
 
