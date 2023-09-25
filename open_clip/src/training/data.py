@@ -639,7 +639,11 @@ class CountDataset(Dataset):
 
         texts = self.tokenize(texts)
 
-        return images, texts
+        # convert two list into a tuple (hard-img-1, ..., hard-img-n, text-1, ..., text-n)
+        ret = images.extend(texts)
+        ret = tuple(ret)
+
+        return ret
 
 
 def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
