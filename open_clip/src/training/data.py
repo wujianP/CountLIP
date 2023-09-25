@@ -639,6 +639,8 @@ class CountDataset(Dataset):
 
         texts = self.tokenize(texts)
 
+        from IPython import embed
+        embed()
         # convert two list into a tuple (hard-img-1, ..., hard-img-n, text-1, ..., text-n)
         ret = tuple(images + texts)
 
