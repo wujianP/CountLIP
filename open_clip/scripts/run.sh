@@ -6,6 +6,8 @@ git pull
 rm -rf /DDN_ROOT/wjpeng/ckp/CountLIP/debug
 CUDA_VISIBLE_DEVICES=0 python -m main \
     --dataset-type="count" \
+    --count-loss-type="intra" \
+    --count-loss-weight=1. \
     --data-root /dev/shm/imagenet \
     --train-data="zhan-wei-fu" \
     --hard-num=2 \

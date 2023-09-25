@@ -92,9 +92,17 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         from IPython import embed
         embed()
 
-        images, texts = batch
+        assert args.hard_num == len(batch)//2
+        images = batch[:len(batch)//2]  # the first half is images
+        images = torch.cat(images, dim=0)   # [b*3*h*w, ..., b*3*h*w] -> (bn)*3*h*w, n is the hard_num
         images = images.to(device=device, dtype=input_dtype, non_blocking=True)
+        texts = batch[len(batch)//2:]   # the second half is texts
+        texts = torch.cat(texts, dim=0)
         texts = texts.to(device=device, non_blocking=True)
+
+        # images, texts = batch
+        # images = images.to(device=device, dtype=input_dtype, non_blocking=True)
+        # texts = texts.to(device=device, non_blocking=True)
 
         data_time_m.update(time.time() - end)
         optimizer.zero_grad()
@@ -107,7 +115,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     with torch.no_grad():
                         dist_model_out = dist_model(images, texts)
                     model_out.update({f'dist_{k}': v for k, v in dist_model_out.items()})
-                losses = loss(**model_out, output_dict=True)
+                losses = loss(**model_out, output_dict=True, hard_num=args.hard_num)
 
                 total_loss = sum(losses.values())
                 losses["loss"] = total_loss

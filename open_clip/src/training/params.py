@@ -463,6 +463,19 @@ def parse_args(args):
         default='mean',
         help='The pixel value for empty patches'
     )
+    parser.add_argument(
+        "--count-loss-type",
+        type=str,
+        choices=['intra', 'inter'],
+        default='intra',
+        help='How to calculate the counting loss'
+    )
+    parser.add_argument(
+        "--count-loss-weight",
+        type=float,
+        default=1.,
+        help='the relative loss weight of counting loss term'
+    )
     # <<< added by countLIP <<<
     args = parser.parse_args(args)
 
