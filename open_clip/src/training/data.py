@@ -717,4 +717,3 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
         data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
 
     return data
-
