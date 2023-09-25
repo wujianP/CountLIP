@@ -718,7 +718,3 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
 
     return data
 
-if __name__ == '__main__':
-
-    from IPython import embed
-    embed()
