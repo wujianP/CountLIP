@@ -640,8 +640,7 @@ class CountDataset(Dataset):
         texts = self.tokenize(texts)
 
         # convert two list into a tuple (hard-img-1, ..., hard-img-n, text-1, ..., text-n)
-        ret = images.extend(texts)
-        ret = tuple(ret)
+        ret = tuple(images + texts)
 
         return ret
 
