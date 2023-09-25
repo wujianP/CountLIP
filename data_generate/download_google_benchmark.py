@@ -17,7 +17,7 @@ if __name__ == '__main__':
     with open(dataset_file, 'r') as file:
         dataset_raw = json.load(file)
 
-    per_number_cnt = [0] * 10
+    per_number_cnt = [0] * 11
     for idx, entry in enumerate(dataset_raw):
         image_url = entry['image_url']
         text = entry['text']
