@@ -13,6 +13,8 @@ if __name__ == '__main__':
     output_dir = '/DDN_ROOT/wjpeng/dataset/countBench/google/data'
     os.makedirs(output_dir, exist_ok=True)
     p = inflect.engine()
+    for i in range(1, 11):
+        os.makedirs(os.path.join(output_dir, p.number_to_words(i+1)))
 
     with open(dataset_file, 'r') as file:
         dataset_raw = json.load(file)
