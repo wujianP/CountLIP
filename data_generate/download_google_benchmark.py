@@ -43,7 +43,7 @@ if __name__ == '__main__':
                     'number': number,
                     'text': text,
                 }
-                json.dump(ret, indent=4)
+                json.dumps(ret, indent=4)
         else:
             print(f"下载失败：{image_url}")
         print(f'[{idx + 1} / {len(dataset_raw)} ({(idx + 1) / len(dataset_raw) * 100:.2f} %)]')
