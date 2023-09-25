@@ -89,9 +89,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         if not args.skip_scheduler:
             scheduler(step)
 
-        from IPython import embed
-        embed()
-
         assert args.hard_num == len(batch)//2
         images = batch[:len(batch)//2]  # the first half is images
         images = torch.cat(images, dim=0)   # [b*3*h*w, ..., b*3*h*w] -> (bn)*3*h*w, n is the hard_num

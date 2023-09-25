@@ -293,7 +293,10 @@ def create_loss(args):
             world_size=args.world_size,
         )
     elif args.count_loss_type == 'intra':
+        # FIXME: complete this
         return IntraCountLoss()
+    elif args.count_loss_type == 'inter':
+        pass    # also return ClipLoss
     return ClipLoss(
         local_loss=args.local_loss,
         gather_with_grad=args.gather_with_grad,
