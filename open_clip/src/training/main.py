@@ -424,8 +424,7 @@ def main(args):
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
-        from IPython import embed
-        embed()
+
         # >>> added by countLIP: evaluate on Google CountBench >>>
         with torch.no_grad():
             google_acc, google_dist = google_evaluate(model, preprocess_val, get_tokenizer(args.model))
