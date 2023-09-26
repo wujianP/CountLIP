@@ -479,8 +479,6 @@ class IntraCountLoss(nn.Module):
         :param hard_num:
         :return:
         """
-        from IPython import embed
-        embed()
         B = int(image_features.shape[0] / hard_num)  # batch size
         D = image_features.shape[1]             # feat dim
 
@@ -500,9 +498,11 @@ class IntraCountLoss(nn.Module):
         for i in range(B):
             labels = self.get_ground_truth(device, hard_num)
             loss = (
-                             F.cross_entropy(img2txt_sim[i], labels) +
-                             F.cross_entropy(txt2img_sim[i], labels)
+                     F.cross_entropy(img2txt_sim[i], labels) +
+                     F.cross_entropy(txt2img_sim[i], labels)
                      ) / 2
             total_loss += loss
+
+        total_loss = total_loss / B
 
         return {"contrastive_loss": total_loss} if output_dict else total_loss
