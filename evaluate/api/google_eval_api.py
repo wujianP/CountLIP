@@ -16,7 +16,7 @@ def my_collate_fn(batch):
 
 
 @torch.no_grad()
-def evaluate(model, val_trans, tokenizer, ):
+def google_evaluate(model, val_trans, tokenizer, ):
 
     # load dataset
     dataset = GoogleCountBench(data_root='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
