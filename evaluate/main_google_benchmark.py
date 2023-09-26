@@ -68,8 +68,7 @@ def main():
             if pred_label == gt_label:
                 correct_num += 1
 
-    from IPython import embed
-    embed()
+    print(f'Acc: {correct_num / len(dataset) * 100:.2f} Dist: {total_dist / len(dataset):.2f}')
 
 
 if __name__ == '__main__':
