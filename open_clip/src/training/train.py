@@ -107,8 +107,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
         if args.accum_freq == 1:
             with autocast():
-                from IPython import embed
-                embed()
                 model_out = model(images, texts)
                 logit_scale = model_out["logit_scale"]
                 if args.distill:

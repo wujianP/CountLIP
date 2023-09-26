@@ -114,7 +114,7 @@ class ClipLoss(nn.Module):
         else:
             logits_per_image = logit_scale * image_features @ text_features.T
             logits_per_text = logit_scale * text_features @ image_features.T
-        
+
         return logits_per_image, logits_per_text
 
     def forward(self, image_features, text_features, logit_scale, output_dict=False, hard_num=-1):
@@ -492,18 +492,17 @@ class IntraCountLoss(nn.Module):
         text_features = text_features.permute(1, 0, 2)        # [hard-num, B, D] -> [B, hard-num, D]
         """till now, image_features[i] is a tensor of shape [hard-num, D] is the features of the i-th sample, across all hard negatives"""
 
+        """because we calculate loss intra each sample and its hard negatives, we have no need to all_gather between different GPUs"""
+        img2txt_sim = logit_scale * image_features @ text_features.permute(0, 2, 1)     # [B, hard-num, hard-num]
+        txt2img_sim = logit_scale * text_features @ image_features.permute(0, 2, 1)     # [B, hard-num, hard-num]
 
-        # chunk inputs into N parts, each part with size B*D, where N = hard_num, B is batch size, D is feature dim
-        chunked_image_features = torch.chunk(input=image_features, chunks=hard_num, dim=0)
-        chunked_text_features = torch.chunk(input=text_features, chunks=hard_num, dim=0)
-
-        logits_per_image, logits_per_text = self.get_logits(image_features, text_features, logit_scale)
-
-        labels = self.get_ground_truth(device, logits_per_image.shape[0])
-
-        total_loss = (
-                             F.cross_entropy(logits_per_image, labels) +
-                             F.cross_entropy(logits_per_text, labels)
+        total_loss = 0.
+        for i in range(B):
+            labels = self.get_ground_truth(device, hard_num)
+            loss = (
+                             F.cross_entropy(img2txt_sim[i], labels) +
+                             F.cross_entropy(txt2img_sim[i], labels)
                      ) / 2
+            total_loss += loss
 
         return {"contrastive_loss": total_loss} if output_dict else total_loss
