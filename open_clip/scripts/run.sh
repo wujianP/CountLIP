@@ -17,7 +17,7 @@ CUDA_VISIBLE_DEVICES=0 python -m main \
     --batch-size=128 \
     --epochs=5000 \
     --lr=5e-7 \
-    --pretrained="openai" \
+    --pretrained="laion2b_s34b_b79k" \
     --model="ViT-B-32"\
     --workers 8 \
     --copy-codebase \

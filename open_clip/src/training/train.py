@@ -89,6 +89,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         if not args.skip_scheduler:
             scheduler(step)
 
+        # batch: [img_1s, img_2s, ..., txt_1s, txt_2s, ...]
         assert args.hard_num == len(batch)//2
         images = batch[:len(batch)//2]  # the first half is images
         images = torch.cat(images, dim=0)   # [b*3*h*w, ..., b*3*h*w] -> (bn)*3*h*w, n is the hard_num
@@ -106,6 +107,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
         if args.accum_freq == 1:
             with autocast():
+                from IPython import embed
+                embed()
                 model_out = model(images, texts)
                 logit_scale = model_out["logit_scale"]
                 if args.distill:
