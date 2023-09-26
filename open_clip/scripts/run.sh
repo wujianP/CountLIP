@@ -52,3 +52,4 @@ torchrun --nproc_per_node 1 -m main \
 
 
 rm -rf /DDN_ROOT/wjpeng/ckp/CountLIP/imagenet_only/inter_hn-4_fill-black_bs128*8_ep5_lr5e-7_warm100_vit-b-32-openai
+
