@@ -6,4 +6,4 @@ python main_google_benchmark.py \
 --batch-size=16 \
 --num-workers=8 \
 --model-name="ViT-B-32" \
---resume=''
+--resume='openai'

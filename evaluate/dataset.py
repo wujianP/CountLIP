@@ -7,9 +7,10 @@ from PIL import Image
 
 
 class GoogleCountBench(Dataset):
-    def __init__(self, data_root, transform):
+    def __init__(self, data_root, transform, tokenizer):
         self.data_root = data_root
         self.transform = transform
+        self.tokenize = tokenizer
 
         files = os.listdir(self.data_root)
         self.image_list = []
@@ -43,9 +44,11 @@ class GoogleCountBench(Dataset):
         file.close()
 
         all_texts = self.generate_all_text(ann)
-        ann['all_texts'] = all_texts
+        all_texts = self.tokenize(all_texts)
 
-        return image, ann
+        label = ann['number'] - 2   # convert number to the index in all_texts
+
+        return image, all_texts, label
 
     @staticmethod
     def generate_all_text(ann):
