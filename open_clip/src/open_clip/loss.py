@@ -471,7 +471,7 @@ class IntraCountLoss(nn.Module):
     def forward(self, image_features, text_features, logit_scale, output_dict=False, hard_num=-1):
         """
         calculate contrastive loss intra the hard-negatives, not the whole batch
-        :param image_features: size of (B * hard-num) * N, where B is batch size, hard-num is the number of
+        :param image_features: size of (B * hard-num) * D, where B is batch size, hard-num is the number of
         hard negatives per image/text, N is the dimension of features.
         :param text_features:
         :param logit_scale:
@@ -481,7 +481,18 @@ class IntraCountLoss(nn.Module):
         """
         from IPython import embed
         embed()
+        B = int(image_features.shape[0] / hard_num)  # batch size
+        D = image_features.shape[1]             # feat dim
+
         device = image_features.device
+        image_features = image_features.view(hard_num, B, D)    # [B*hard-num, D] -> [hard-num, B, D]
+        image_features = image_features.permute(1, 0, 2)        # [hard-num, B, D] -> [B, hard-num, D]
+
+        text_features = text_features.view(hard_num, B, D)    # [B*hard-num, D] -> [hard-num, B, D]
+        text_features = text_features.permute(1, 0, 2)        # [hard-num, B, D] -> [B, hard-num, D]
+        """till now, image_features[i] is a tensor of shape [hard-num, D] is the features of the i-th sample, across all hard negatives"""
+
+
         # chunk inputs into N parts, each part with size B*D, where N = hard_num, B is batch size, D is feature dim
         chunked_image_features = torch.chunk(input=image_features, chunks=hard_num, dim=0)
         chunked_text_features = torch.chunk(input=text_features, chunks=hard_num, dim=0)
