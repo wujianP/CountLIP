@@ -7,8 +7,10 @@ from PIL import Image
 
 
 class GoogleCountBench(Dataset):
-    def __init__(self, data_root):
+    def __init__(self, data_root, transform):
         self.data_root = data_root
+        self.transform = transform
+
         files = os.listdir(self.data_root)
         self.image_list = []
         self.ann_list = []
@@ -32,6 +34,7 @@ class GoogleCountBench(Dataset):
         image_name = self.image_list[idx]
         image_path = os.path.join(self.data_root, image_name)
         image = Image.open(image_path).convert('RGB')
+        image = self.transform(image)
 
         ann_name = self.ann_list[idx]
         ann_path = os.path.join(self.data_root, ann_name)
