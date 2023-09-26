@@ -7,4 +7,5 @@ python main_google_benchmark.py \
 --batch-size=16 \
 --num-workers=8 \
 --model-name="ViT-B-32" \
---resume='/DDN_ROOT/wjpeng/ckp/CountLIP/imagenet_only/inter_hn-2_fill-black_bs256*8_ep10_lr1e-7_warm100_vit-b-32-openai/checkpoints/epoch_10.pt'
+--resume='/DDN_ROOT/wjpeng/ckp/CountLIP/imagenet_only/inter_hn-2_fill-black_bs256*8_ep10_lr5e-6_warm100_vit-b-32-openai/checkpoints/epoch_10.pt'
+
