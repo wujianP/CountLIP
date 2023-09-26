@@ -1,5 +1,6 @@
 conda activate /discobox/wjpeng/env/countLIP
 cd /discobox/wjpeng/code/202306/CountLIP/evaluate
+git pull
 
 python main_google_benchmark.py \
 --data-root='/DDN_ROOT/wjpeng/dataset/countBench/google/data' \

@@ -37,9 +37,39 @@ def main():
         drop_last=False
     )
 
+    correct_num = 0
+    total_dist = 0
     for cur_idx, (images, all_texts, labels) in enumerate(dataloader):
-        from IPython import embed
-        embed()
+        B, C, L = all_texts.shape   # B: batch size, C: 2-10, L: sentence length
+
+        all_texts = all_texts.view(-1, L)    # [B, 9, 77] -> [9B, 77] B: batch size, 9: 2-10, 77: sentence length
+        images, all_texts = images.cuda(), all_texts.cuda()
+
+        model_out = model(images, all_texts)
+        image_feats = model_out[0]  # [B, 512]  B: batch size, 512: feat dim
+        text_feats = model_out[1]   # [9B, 512]
+        logit_scale = model_out[2]
+
+        # normalize feats
+
+        text_feats = text_feats.view(B, C, -1)  # [9B, 512] -> [B, 9, 512]
+
+        # compute similarity
+        for i in range(B):
+            query_image_feat = image_feats[i]  # [512]
+            key_text_feats = text_feats[i]  # [9, 512]
+            img2text_sim = logit_scale * query_image_feat @ key_text_feats.T
+
+            pred_label = img2text_sim.argmax().item()
+            gt_label = labels[i].item()
+
+            dist = abs(pred_label - gt_label)
+            total_dist += dist
+            if pred_label == gt_label:
+                correct_num += 1
+
+    from IPython import embed
+    embed()
 
 
 if __name__ == '__main__':
