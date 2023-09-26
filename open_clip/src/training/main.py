@@ -35,6 +35,7 @@ from training.params import parse_args
 from training.scheduler import cosine_lr, const_lr, const_lr_cooldown
 from training.train import train_one_epoch, evaluate
 from training.file_utils import pt_load, check_exists, start_sync_process, remote_sync
+from count_eval import google_evaluate
 
 
 LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
@@ -423,8 +424,16 @@ def main(args):
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
-        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=writer)
+        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model,
+                        args, get_tokenizer(args.model))
         completed_epoch = epoch + 1
+
+        # >>> added by countLIP: evaluate on Google CountBench >>>
+        with torch.no_grad():
+            google_acc, google_dist = google_evaluate(model, preprocess_val, get_tokenizer(args.model))
+        if is_master(args):
+            logging.info(f"Eval Epoch: {epoch} - Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
+        # <<< added by countLIP: evaluate on Google CountBench <<<
 
         if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
             evaluate(model, data, completed_epoch, args, writer)
