@@ -35,15 +35,14 @@ def google_evaluate(model, val_trans, tokenizer):
     total_dist = 0
     for cur_idx, (images, all_texts, labels) in enumerate(dataloader):
         B, C, L = all_texts.shape   # B: batch size, C: 2-10, L: sentence length
-        from IPython import embed
-        embed()
+
         all_texts = all_texts.view(-1, L)    # [B, 9, 77] -> [9B, 77] B: batch size, 9: 2-10, 77: sentence length
         images, all_texts = images.cuda(), all_texts.cuda()
 
         model_out = model(images, all_texts)
-        image_feats = model_out[0]  # [B, 512]  B: batch size, 512: feat dim
-        text_feats = model_out[1]   # [9B, 512]
-        logit_scale = model_out[2]
+        image_feats = model_out['image_features']  # [B, 512]  B: batch size, 512: feat dim
+        text_feats = model_out['text_features']   # [9B, 512]
+        logit_scale = model_out['logit_scale']
 
         # normalize feats
 
