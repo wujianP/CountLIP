@@ -37,7 +37,7 @@ def main():
         drop_last=False
     )
 
-    for cur_idx, (images, anns) in enumerate(dataloader):
+    for cur_idx, (images, all_texts, labels) in enumerate(dataloader):
         from IPython import embed
         embed()
 
