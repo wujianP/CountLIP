@@ -33,13 +33,11 @@ def prepare_sam_data(images, boxes, resize_size):
 
     batched_input = []
     for i in range(len(images)):
-        from IPython import embed
-        embed()
-        w, h = images[i].size
+        w, h = images[i].size = images[i].size
         box = torch.tensor([boxes[i]])
         data = {
             'image': prepare_image(images[i], resize_transform),
-            'boxes': resize_transform.apply_boxes_torch(box, h, w),
+            'boxes': resize_transform.apply_boxes_torch(box, (h, w)),
             'original_size': (h, w)
         }
         batched_input.append(data)
