@@ -1,8 +1,9 @@
 from dataset import ImageNetWithBox
 from torch.utils.data import DataLoader
-from PIL import Image
+from PIL import Image, ImageDraw
 
 import torch
+import open_clip
 import argparse
 import wandb
 import numpy as np
@@ -46,16 +47,6 @@ def prepare_sam_data(images, boxes, resize_size):
     return batched_input
 
 
-def show_mask(mask, ax, random_color=True):
-    if random_color:
-        color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
-    else:
-        color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
-    h, w = mask.shape[-2:]
-    mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
-    ax.imshow(mask_image)
-
-
 def show_box(box, ax, label, random_color=True):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
@@ -67,32 +58,13 @@ def show_box(box, ax, label, random_color=True):
     ax.text(x0, y0, label)
 
 
-def wandb_visualize(images, class_names, boxes, masks):
-    for img, cls, box, mask in zip(images, class_names, boxes, masks):
-        w, h = img.size
-        # box, img, mask
-        plt.figure(figsize=(w / 80, h / 80))
-        ax1 = plt.gca()
-        ax1.axis('off')
-        ax1.imshow(img)
-        show_box(box, ax1, cls)
-        show_mask(mask, ax1)
-        fig1 = plt.gcf()
-        plt.close()
+def wandb_visualize(images, class_names, similarities, boxes, foregrounds):
+    for img, cls, sim, box, fg in zip(images, class_names, similarities, boxes, foregrounds):
+        draw = ImageDraw.Draw(img)
+        coords = tuple(box)
+        draw.rectangle(coords, outline="red", width=2)
 
-        # mask only
-        plt.figure(figsize=(w / 80, h / 80))
-        ax2 = plt.gca()
-        ax2.axis('off')
-        show_mask(mask, ax2)
-        fig2 = plt.gcf()
-
-        # extract foreground
-        mask_pil = Image.fromarray((mask[0] * 255).astype(np.uint8), mode='L')
-        background = Image.new('RGB', img.size, (0, 0, 0))
-        foreground = Image.composite(img, background, mask_pil)
-
-        run.log({'segment': [wandb.Image(fig1), wandb.Image(fig2), wandb.Image(foreground)]})
+        run.log({'segment': [wandb.Image(img, caption=cls), wandb.Image(fg, caption=f'similarity: {sim:2f}')]})
 
 
 @torch.no_grad()
@@ -100,6 +72,11 @@ def main():
 
     # load sam
     sam = build_sam(checkpoint=args.sam_checkpoint).cuda()
+
+    # load clip
+    clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
+                                                                           pretrained='laion2b_s34b_b79k')
+    clip_tokenizer = open_clip.get_tokenizer(args.clip_model)
 
     # load dataset
     dataset = ImageNetWithBox(data_root=args.data_root)
@@ -115,14 +92,39 @@ def main():
 
     total_iter = len(dataloader)
     for cur_iter, (images, boxs, class_names, class_ids, filenames) in enumerate(dataloader):
-        # prepare sam input
+        # sam segment
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
         batched_output = sam(batched_input, multimask_output=False)
         masks_list = [output['masks'][0].cpu().numpy() for output in batched_output]
-
-        wandb_visualize(images, class_names, boxs, masks_list)
-
         torch.cuda.empty_cache()
+
+        # extract foreground
+        foreground_pils = []
+        for img, mask in zip(images, masks_list):
+            mask_pil = Image.fromarray((mask[0] * 255).astype(np.uint8), mode='L')
+            bg = Image.new('RGB', img.size, (0, 0, 0))
+            fg = Image.composite(img, bg, mask_pil)
+            foreground_pils.append(fg)
+
+        # calculate text-foreground similarity
+        from IPython import embed
+        embed()
+
+        image = preprocess(Image.open("CLIP.png")).unsqueeze(0)
+        text = tokenizer(["a diagram", "a dog", "a cat"])
+
+        with torch.no_grad(), torch.cuda.amp.autocast():
+            image_features = model.encode_image(image)
+            text_features = model.encode_text(text)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            text_features /= text_features.norm(dim=-1, keepdim=True)
+
+            text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+
+        print("Label probs:", text_probs)  # prints: [[1., 0., 0.]]
+
+        wandb_visualize(images, class_names, boxs, foreground_pils)
+
 
 
 if __name__ == '__main__':
@@ -130,7 +132,8 @@ if __name__ == '__main__':
     parser.add_argument('--data_root', type=str, default='/dev/shm/imagenet/')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
-    parser.add_argument('--sam_checkpoint', type=str, default='/discobox/wjpeng/weights/sam/sam_vit_h_4b8939.pth')
+    parser.add_argument('--sam_checkpoint', type=str, default='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth')
+    parser.add_argument('--clip_model', type=str, default='ViT-B-16')
     args = parser.parse_args()
     device = 'cuda'
 
