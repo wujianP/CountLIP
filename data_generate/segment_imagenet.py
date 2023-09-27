@@ -107,11 +107,11 @@ def main():
             foreground_pils.append(fg)
 
         # calculate text-foreground similarity
+
+        clip_images = [clip_preprocess(img) for img in images]
+        clip_texts = clip_tokenizer([f'a photo of a {cls}' for cls in class_names])
         from IPython import embed
         embed()
-
-        image = preprocess(Image.open("CLIP.png")).unsqueeze(0)
-        text = tokenizer(["a diagram", "a dog", "a cat"])
 
         with torch.no_grad(), torch.cuda.amp.autocast():
             image_features = model.encode_image(image)
