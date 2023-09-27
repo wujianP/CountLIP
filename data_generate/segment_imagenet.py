@@ -1,3 +1,5 @@
+import os
+
 from dataset import ImageNetWithBox
 from torch.utils.data import DataLoader
 from PIL import Image, ImageDraw
@@ -140,8 +142,11 @@ def main():
         # save
         for i in range(len(images)):
             fg_pil = foreground_pils[i]
-            from IPython import embed
-            embed()
+            cls_id = class_ids[i]
+            fn = filenames[i]
+            dir_path = os.path.join(args.out_dir, cls_id)
+            os.makedirs(dir_path, exist_ok=True)
+            fg_pil.save(os.path.join(dir_path, fn) + '.jpg')
         save_time = time.time() - start_time
         start_time = time.time()
 
@@ -153,6 +158,7 @@ def main():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('SAM segment ImageNet')
     parser.add_argument('--data_root', type=str, default='/dev/shm/imagenet/')
+    parser.add_argument('--out_dir', type=str, default='/DDN_ROOT/wjpeng/dataset/imagenet/segment')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--sam_checkpoint', type=str, default='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth')
