@@ -76,6 +76,7 @@ def main():
     # load clip
     clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
                                                                            pretrained='laion2b_s34b_b88k')
+    clip_model.cuda()
     clip_tokenizer = open_clip.get_tokenizer(args.clip_model)
 
     # load dataset
@@ -109,21 +110,17 @@ def main():
         # calculate text-foreground similarity
 
         clip_images = [clip_preprocess(img) for img in images]
-        clip_texts = clip_tokenizer([f'a photo of a {cls}' for cls in class_names])
-        from IPython import embed
-        embed()
+        clip_images = torch.stack(clip_images, dim=0).cuda()
+        clip_texts = clip_tokenizer([f'a photo of a {cls}' for cls in class_names]).cuda()
 
-        with torch.no_grad(), torch.cuda.amp.autocast():
-            image_features = model.encode_image(image)
-            text_features = model.encode_text(text)
+        with torch.no_grad():
+            image_features = clip_model.encode_image(clip_images)
+            text_features = clip_model.encode_text(clip_texts)
             image_features /= image_features.norm(dim=-1, keepdim=True)
             text_features /= text_features.norm(dim=-1, keepdim=True)
+            similarity = (image_features * text_features).sum(dim=1)
 
-            text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-
-        print("Label probs:", text_probs)  # prints: [[1., 0., 0.]]
-
-        wandb_visualize(images, class_names, boxs, foreground_pils)
+        wandb_visualize(images, class_names, similarity, boxs, foreground_pils)
 
 
 if __name__ == '__main__':
