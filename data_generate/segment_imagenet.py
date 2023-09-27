@@ -1,5 +1,6 @@
 from dataset import ImageNetWithBox
 from torch.utils.data import DataLoader
+from PIL import Image
 
 import torch
 import argparse
@@ -75,7 +76,7 @@ def wandb_visualize(images, class_names, boxes, masks):
         ax1.axis('off')
         ax1.imshow(img)
         show_box(box, ax1, cls)
-        show_mask(mask[0], ax1)
+        show_mask(mask, ax1)
         fig1 = plt.gcf()
         plt.close()
 
@@ -83,10 +84,15 @@ def wandb_visualize(images, class_names, boxes, masks):
         plt.figure(figsize=(w / 80, h / 80))
         ax2 = plt.gca()
         ax2.axis('off')
-        show_mask(mask[0], ax2)
+        show_mask(mask, ax2)
         fig2 = plt.gcf()
 
-        run.log({'segment': [wandb.Image(fig1), wandb.Image(fig2)]})
+        # extract foreground
+        mask_pil = Image.fromarray((mask[0] * 255).astype(np.uint8), mode='L')
+        background = Image.new('RGB', img.size, (0, 0, 0))
+        foreground = Image.composite(img, background, mask_pil)
+
+        run.log({'segment': [wandb.Image(fig1), wandb.Image(fig2), wandb.Image(foreground)]})
 
 
 @torch.no_grad()
@@ -112,10 +118,9 @@ def main():
         # prepare sam input
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
         batched_output = sam(batched_input, multimask_output=False)
-        masks_list = [output['masks'].cpu().numpy() for output in batched_output]
+        masks_list = [output['masks'][0].cpu().numpy() for output in batched_output]
 
         wandb_visualize(images, class_names, boxs, masks_list)
-
 
 
 if __name__ == '__main__':
