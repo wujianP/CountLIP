@@ -6,6 +6,7 @@ import torch
 import open_clip
 import argparse
 import wandb
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -92,6 +93,7 @@ def main():
     )
 
     total_iter = len(dataloader)
+
     for cur_iter, (images, boxs, class_names, class_ids, filenames) in enumerate(dataloader):
         # sam segment
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
@@ -111,7 +113,7 @@ def main():
 
         clip_images = [clip_preprocess(img) for img in images]
         clip_images = torch.stack(clip_images, dim=0).cuda()
-        clip_texts = clip_tokenizer([f'a photo of a {cls}' for cls in class_names]).cuda()
+        clip_texts = clip_tokenizer([f'a {cls}' for cls in class_names]).cuda()
 
         with torch.no_grad():
             image_features = clip_model.encode_image(clip_images)
