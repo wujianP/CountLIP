@@ -75,10 +75,10 @@ def main():
     sam = build_sam_vit_l(checkpoint=args.sam_checkpoint).cuda()
 
     # load clip
-    clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
-                                                                           pretrained='laion2b_s34b_b88k')
-    clip_model.cuda()
-    clip_tokenizer = open_clip.get_tokenizer(args.clip_model)
+    # clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
+    #                                                                        pretrained='laion2b_s34b_b88k')
+    # clip_model.cuda()
+    # clip_tokenizer = open_clip.get_tokenizer(args.clip_model)
 
     # load dataset
     dataset = ImageNetWithBox(data_root=args.data_root)
@@ -106,10 +106,11 @@ def main():
 
         # extract foreground
         foreground_pils = []
-        for img, mask in zip(images, masks_list):
+        for img, mask, box in zip(images, masks_list, boxs):
             mask_pil = Image.fromarray((mask[0] * 255).astype(np.uint8), mode='L')
             bg = Image.new('RGB', img.size, (0, 0, 0))
             fg = Image.composite(img, bg, mask_pil)
+            fg = fg.crop(box)
             foreground_pils.append(fg)
 
         sam_time = time.time() - start_time
@@ -117,28 +118,36 @@ def main():
 
         # calculate text-foreground similarity
 
-        clip_images = [clip_preprocess(img) for img in images]
-        clip_images = torch.stack(clip_images, dim=0).cuda()
-        clip_texts = clip_tokenizer([f'a {cls}' for cls in class_names]).cuda()
+        # clip_images = [clip_preprocess(img) for img in images]
+        # clip_images = torch.stack(clip_images, dim=0).cuda()
+        # clip_texts = clip_tokenizer([f'a {cls}' for cls in class_names]).cuda()
+        #
+        # with torch.no_grad():
+        #     image_features = clip_model.encode_image(clip_images)
+        #     text_features = clip_model.encode_text(clip_texts)
+        #     image_features /= image_features.norm(dim=-1, keepdim=True)
+        #     text_features /= text_features.norm(dim=-1, keepdim=True)
+        #     similarity = (image_features * text_features).sum(dim=1)
+        # torch.cuda.empty_cache()
 
-        with torch.no_grad():
-            image_features = clip_model.encode_image(clip_images)
-            text_features = clip_model.encode_text(clip_texts)
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-            text_features /= text_features.norm(dim=-1, keepdim=True)
-            similarity = (image_features * text_features).sum(dim=1)
-        torch.cuda.empty_cache()
+        # clip_time = time.time() - start_time
+        # start_time = time.time()
 
-        clip_time = time.time() - start_time
-        start_time = time.time()
+        # wandb_visualize(images, class_names, similarity, boxs, foreground_pils)
+        # vis_time = time.time() - start_time
+        # start_time = time.time()
 
-        wandb_visualize(images, class_names, similarity, boxs, foreground_pils)
-        vis_time = time.time() - start_time
+        # save
+        for i in range(len(images)):
+            fg_pil = foreground_pils[i]
+            from IPython import embed
+            embed()
+        save_time = time.time() - start_time
         start_time = time.time()
 
         print(f'[{cur_iter+1} / {total_iter}] ({(cur_iter+1)/total_iter*100:.2f}%) '
-              f'data: {data_time:.2f} sam: {sam_time:.2f} clip: {clip_time:.2f}'
-              f'vis: {vis_time:.2f} batch: {data_time+sam_time+clip_time+vis_time:.2f}')
+              f'data: {data_time:.2f} sam: {sam_time:.2f} save: {save_time:.2f} '
+              f'batch: {data_time+sam_time+save_time:.2f}')
 
 
 if __name__ == '__main__':
