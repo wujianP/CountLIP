@@ -33,7 +33,7 @@ def prepare_sam_data(images, boxes, resize_size):
 
     batched_input = []
     for i in range(len(images)):
-        w, h = images[i].size = images[i].size
+        w, h = images[i].size
         box = torch.tensor([boxes[i]])
         data = {
             'image': prepare_image(images[i], resize_transform),
