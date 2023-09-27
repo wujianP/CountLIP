@@ -1,7 +1,7 @@
 import os
 
 from dataset import ImageNetWithBox
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from PIL import Image, ImageDraw
 
 import torch
@@ -50,17 +50,6 @@ def prepare_sam_data(images, boxes, resize_size):
     return batched_input
 
 
-def show_box(box, ax, label, random_color=True):
-    if random_color:
-        color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
-    else:
-        color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
-    x0, y0 = box[0], box[1]
-    w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor=color, facecolor=(0, 0, 0, 0), lw=2))
-    ax.text(x0, y0, label)
-
-
 def wandb_visualize(images, class_names, similarities, boxes, foregrounds):
     for img, cls, sim, box, fg in zip(images, class_names, similarities, boxes, foregrounds):
         draw = ImageDraw.Draw(img)
@@ -84,8 +73,19 @@ def main():
 
     # load dataset
     dataset = ImageNetWithBox(data_root=args.data_root)
+
+    total_len = len(dataset)
+    split_len = total_len // args.job_num
+    start_idx = args.job_id * split_len
+    end_idx = start_idx + split_len
+    if args.job_id == (args.job_num - 1):
+        end_idx = total_len
+    split_dataset = Subset(dataset, range(start_idx, end_idx))
+
+    print(f'dataset split: start index: {start_idx}, end index: {end_idx}, split len: {len(split_dataset)}')
+
     dataloader = DataLoader(
-        dataset=dataset,
+        dataset=split_dataset,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
         collate_fn=my_collate_fn,
@@ -150,7 +150,7 @@ def main():
         save_time = time.time() - start_time
         start_time = time.time()
 
-        print(f'[{cur_iter+1} / {total_iter}] ({(cur_iter+1)/total_iter*100:.2f}%) '
+        print(f'[JOB: {args.job_id} / {args.job_num}  {cur_iter+1} / {total_iter}] ({(cur_iter+1)/total_iter*100:.2f}%) '
               f'data: {data_time:.2f} sam: {sam_time:.2f} save: {save_time:.2f} '
               f'batch: {data_time+sam_time+save_time:.2f}')
 
@@ -163,6 +163,9 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=8)
     parser.add_argument('--sam_checkpoint', type=str, default='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth')
     parser.add_argument('--clip_model', type=str, default='ViT-B-16')
+
+    parser.add_argument('--jop_num', type=int, default=1)
+    parser.add_argument('--job_id', type=int, default=0)
     args = parser.parse_args()
     device = 'cuda'
 
