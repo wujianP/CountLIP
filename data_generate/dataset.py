@@ -71,4 +71,4 @@ class ImageNetWithBox(Dataset):
 
         box = [x_min, y_min, x_max, y_max]
 
-        return image, box, class_name, class_id
+        return image, box, class_name, class_id, image_name
