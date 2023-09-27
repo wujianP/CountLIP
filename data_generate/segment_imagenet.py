@@ -33,6 +33,8 @@ def prepare_sam_data(images, boxes, resize_size):
 
     batched_input = []
     for i in range(len(images)):
+        from IPython import embed
+        embed()
         w, h = images[i].size
         box = torch.tensor([boxes[i]])
         data = {
@@ -64,11 +66,10 @@ def main():
 
     total_iter = len(dataloader)
     for cur_iter, (images, boxs, class_names, class_ids, filenames) in enumerate(dataloader):
-
-        from IPython import embed
-        embed()
         # prepare sam input
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
+        from IPython import embed
+        embed()
         batched_output = sam(batched_input, multimask_output=False)
         masks_list = [output['masks'].cpu().numpy() for output in batched_output]
 
