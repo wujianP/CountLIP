@@ -75,7 +75,7 @@ def main():
 
     # load clip
     clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
-                                                                           pretrained='laion2b_s34b_b79k')
+                                                                           pretrained='laion2b_s34b_b88k')
     clip_tokenizer = open_clip.get_tokenizer(args.clip_model)
 
     # load dataset
