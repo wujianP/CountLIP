@@ -93,8 +93,11 @@ def main():
     )
 
     total_iter = len(dataloader)
-
+    start_time = time.time()
     for cur_iter, (images, boxs, class_names, class_ids, filenames) in enumerate(dataloader):
+        data_time = time.time() - start_time
+        start_time = time.time()
+
         # sam segment
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
         batched_output = sam(batched_input, multimask_output=False)
@@ -109,6 +112,9 @@ def main():
             fg = Image.composite(img, bg, mask_pil)
             foreground_pils.append(fg)
 
+        sam_time = time.time() - start_time
+        start_time = time.time()
+
         # calculate text-foreground similarity
 
         clip_images = [clip_preprocess(img) for img in images]
@@ -121,8 +127,18 @@ def main():
             image_features /= image_features.norm(dim=-1, keepdim=True)
             text_features /= text_features.norm(dim=-1, keepdim=True)
             similarity = (image_features * text_features).sum(dim=1)
+        torch.cuda.empty_cache()
+
+        clip_time = time.time() - start_time
+        start_time = time.time()
 
         wandb_visualize(images, class_names, similarity, boxs, foreground_pils)
+        vis_time = time.time() - start_time
+        start_time = time.time()
+
+        print(f'[{cur_iter+1} / {total_iter}] ({(cur_iter+1)/total_iter*100:.2f}%) '
+              f'data: {data_time:.2f} sam: {sam_time:.2f} clip: {clip_time:.2f}'
+              f'vis: {vis_time:.2f} batch: {data_time+sam_time+clip_time+vis_time:.2f}')
 
 
 if __name__ == '__main__':
