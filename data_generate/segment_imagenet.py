@@ -75,7 +75,7 @@ def wandb_visualize(images, class_names, boxes, masks):
         ax1.axis('off')
         ax1.imshow(img)
         show_box(box, ax1, cls)
-        show_mask(mask, ax1)
+        show_mask(mask[0], ax1)
         fig1 = plt.gcf()
         plt.close()
 
@@ -83,7 +83,7 @@ def wandb_visualize(images, class_names, boxes, masks):
         plt.figure(figsize=(w / 80, h / 80))
         ax2 = plt.gca()
         ax2.axis('off')
-        show_mask(mask, ax2)
+        show_mask(mask[0], ax2)
         fig2 = plt.gcf()
 
         run.log({'segment': [wandb.Image(fig1), wandb.Image(fig2)]})
@@ -104,7 +104,7 @@ def main():
         collate_fn=my_collate_fn,
         pin_memory=True,
         drop_last=False,
-        shuffle=False
+        shuffle=True
     )
 
     total_iter = len(dataloader)
@@ -113,8 +113,9 @@ def main():
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
         batched_output = sam(batched_input, multimask_output=False)
         masks_list = [output['masks'].cpu().numpy() for output in batched_output]
-        from IPython import embed
-        embed()
+
+        wandb_visualize(images, class_names, boxs, masks_list)
+
 
 
 if __name__ == '__main__':
