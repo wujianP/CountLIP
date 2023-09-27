@@ -122,6 +122,8 @@ def main():
 
         wandb_visualize(images, class_names, boxs, masks_list)
 
+        torch.cuda.empty_cache()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('SAM segment ImageNet')
