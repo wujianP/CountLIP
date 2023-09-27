@@ -164,7 +164,7 @@ if __name__ == '__main__':
     parser.add_argument('--sam_checkpoint', type=str, default='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth')
     parser.add_argument('--clip_model', type=str, default='ViT-B-16')
 
-    parser.add_argument('--jop_num', type=int, default=1)
+    parser.add_argument('--job_num', type=int, default=1)
     parser.add_argument('--job_id', type=int, default=0)
     args = parser.parse_args()
     device = 'cuda'
