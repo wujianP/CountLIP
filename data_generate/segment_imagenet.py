@@ -34,7 +34,7 @@ def prepare_sam_data(images, boxes, resize_size):
     batched_input = []
     for i in range(len(images)):
         w, h = images[i].size
-        box = torch.tensor([boxes[i]])
+        box = torch.tensor([boxes[i]]).cuda()
         data = {
             'image': prepare_image(images[i], resize_transform),
             'boxes': resize_transform.apply_boxes_torch(box, (h, w)),
