@@ -169,7 +169,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     device = 'cuda'
 
-    wandb.login()
-    run = wandb.init('SAM ImageNet')
+    # wandb.login()
+    # run = wandb.init('SAM ImageNet')
     main()
-    run.finish()
+    # run.finish()

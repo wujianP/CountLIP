@@ -10,5 +10,5 @@ python segment_imagenet.py \
 --batch_size=8 \
 --num_workers=8 \
 --sam_checkpoint='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth' \
---job_num=32 \
+--job_num=24 \
 --job_id=$JOB_ID
