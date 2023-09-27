@@ -64,12 +64,12 @@ def main():
     total_iter = len(dataloader)
     for cur_iter, (images, boxs, class_names, class_ids, filenames) in enumerate(dataloader):
 
+        from IPython import embed
+        embed()
         # prepare sam input
         batched_input = prepare_sam_data(images=images, boxes=boxs, resize_size=sam.image_encoder.img_size)
         batched_output = sam(batched_input, multimask_output=False)
         masks_list = [output['masks'].cpu().numpy() for output in batched_output]
-        from IPython import embed
-        embed()
 
 
 if __name__ == '__main__':
