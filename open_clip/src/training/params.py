@@ -478,9 +478,14 @@ def parse_args(args):
     )
     parser.add_argument(
         "--segmented-object",
-        type=bool,
         action='store_true',
         help='use segmented object images without background information'
+    )
+    parser.add_argument(
+        "--eval-google-every-n-steps",
+        type=int,
+        default=200,
+        help='evaluate on Google CountBench every n steps'
     )
     # <<< added by countLIP <<<
     args = parser.parse_args(args)

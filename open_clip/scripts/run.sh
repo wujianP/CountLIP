@@ -30,22 +30,24 @@ cd /discobox/wjpeng/code/202306/CountLIP/open_clip/src/training
 git pull
 
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-torchrun --nproc_per_node 1 -m main \
+torchrun --nproc_per_node 8 -m main \
     --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
-    --name="inter_hn-4_fill-black_bs128*8_ep5_lr5e-7_warm100_vit-b-32--3" \
+    --name="1" \
     --dataset-type="count" \
+    --segmented-object \
     --count-loss-type="inter" \
     --count-loss-weight=1. \
     --hard-num=4 \
     --empty-fill-type="black" \
     --batch-size=128 \
-    --epochs=5000 \
-    --lr=5e-7 \
+    --epochs=2 \
+    --lr=1e-6 \
     --warmup 100 \
     --pretrained="openai" \
     --model="ViT-B-32"\
-    --workers 6 \
+    --workers 8 \
     --copy-codebase \
     --data-root /dev/shm/imagenet \
     --train-data="zhan-wei-fu" \
-    --log-every-n-steps 10
+    --log-every-n-steps 10 \
+    --eval-google-every-n-steps 10

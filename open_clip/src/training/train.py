@@ -62,7 +62,7 @@ def backward(total_loss, scaler):
         total_loss.backward()
 
 
-def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, tb_writer=None):
+def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, val_preprocess, tokenizer, tb_writer=None):
     device = torch.device(args.device)
     autocast = get_autocast(args.precision)
     input_dtype = get_input_dtype(args.precision)
@@ -171,6 +171,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
                 backward(total_loss, scaler)
 
+
+
         if scaler is not None:
             if args.horovod:
                 optimizer.synchronize()
@@ -201,6 +203,14 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         batch_time_m.update(time.time() - end)
         end = time.time()
         batch_count = i_accum + 1
+
+        # >>> added by countLIP: evaluate on Google CountBench >>>
+        if i_accum % args.eval_google_every_n_steps == 0 or batch_count == num_batches_per_epoch:
+            with torch.no_grad():
+                google_acc, google_dist = google_evaluate(model, val_preprocess, tokenizer)
+            if is_master(args):
+                logging.info(f"Eval Epoch: {epoch} - Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
+        # <<< added by countLIP: evaluate on Google CountBench <<<
 
         if is_master(args) and (i_accum % args.log_every_n_steps == 0 or batch_count == num_batches_per_epoch):
             batch_size = len(images)

@@ -425,7 +425,7 @@ def main(args):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args)
+        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, preprocess_val, get_tokenizer(args.model))
         completed_epoch = epoch + 1
 
         # >>> added by countLIP: evaluate on Google CountBench >>>
