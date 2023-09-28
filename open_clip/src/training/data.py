@@ -528,19 +528,21 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 
 # >>> start: added by wjpeng >>>
 class CountDataset(Dataset):
-    def __init__(self, data_root, hard_num, transform, empty_fill_type, tokenizer):
+    def __init__(self, data_root, hard_num, transform, empty_fill_type, segmented, tokenizer):
         """
         This is designed for ImageNet-Boxes
         :param data_root: the root path of the dataset, default: /dev/shm/imagenet
         :param hard_num: the number of hard negatives per sample
         :param transform: image transformation
-        :param empty_fill_type what value to fill in the empty region
+        :param empty_fill_type: what value to fill in the empty region
+        :param segmented: if true, the background of an object is removed
         """
         self.data_root = data_root
         self.hard_num = hard_num
         self.transform = transform
         self.tokenize = tokenizer
         self.empty_fill_type = empty_fill_type
+        self.segmented = segmented
         self.inflector = inflect.engine()
         # imagenet class id to class name, eg: 'n01440764' -> ['tench', 'Tinca tinca']
         self.id2class = {}
@@ -617,13 +619,17 @@ class CountDataset(Dataset):
         image_path = os.path.join(self.data_root, 'train', class_id, image_name) + '.JPEG'
         image = Image.open(image_path).convert('RGB')
 
-        box_path = os.path.join(self.data_root, 'boxes', class_id, image_name) + '.xml'
-        box_ann = ET.parse(box_path).getroot()
-        x_min = int(box_ann.find('object').find('bndbox').find('xmin').text)
-        y_min = int(box_ann.find('object').find('bndbox').find('ymin').text)
-        x_max = int(box_ann.find('object').find('bndbox').find('xmax').text)
-        y_max = int(box_ann.find('object').find('bndbox').find('ymax').text)
-        object_region = image.crop((x_min, y_min, x_max, y_max))
+        if self.segmented:
+            object_region_path = os.path.join(self.data_root, 'segments', class_name, class_name) + '.jpg'
+            object_region = Image.open(object_region_path).convert('RGB')
+        else:
+            box_path = os.path.join(self.data_root, 'boxes', class_id, image_name) + '.xml'
+            box_ann = ET.parse(box_path).getroot()
+            x_min = int(box_ann.find('object').find('bndbox').find('xmin').text)
+            y_min = int(box_ann.find('object').find('bndbox').find('ymin').text)
+            x_max = int(box_ann.find('object').find('bndbox').find('xmax').text)
+            y_max = int(box_ann.find('object').find('bndbox').find('ymax').text)
+            object_region = image.crop((x_min, y_min, x_max, y_max))
 
         # generate n spliced images
         object_nums = random.sample(range(1, 11), self.hard_num)
@@ -658,6 +664,7 @@ def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
                            hard_num=args.hard_num,
                            transform=transform_fn,
                            empty_fill_type=args.empty_fill_type,
+                           segmented=args.segmented_object,
                            tokenizer=tokenizer)
 
     num_samples = len(dataset)

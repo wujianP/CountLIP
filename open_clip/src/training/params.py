@@ -476,6 +476,12 @@ def parse_args(args):
         default=1.,
         help='the relative loss weight of counting loss term'
     )
+    parser.add_argument(
+        "--segmented-object",
+        type=bool,
+        action='store_true',
+        help='use segmented object images without background information'
+    )
     # <<< added by countLIP <<<
     args = parser.parse_args(args)
 

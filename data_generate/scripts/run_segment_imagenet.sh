@@ -1,4 +1,4 @@
-JOB_ID=0
+JOB_ID=23
 conda activate /discobox/wjpeng/env/countLIP
 cd /discobox/wjpeng/code/202306/CountLIP/data_generate
 git pull
