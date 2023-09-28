@@ -565,7 +565,7 @@ class CountDataset(Dataset):
     def __len__(self):
         return len(self.image_name_list)
 
-    def splice_image(self, obj_region, obj_num, keep_ratio=False):
+    def splice_image(self, obj_region, obj_num, bg_image, keep_ratio=False):
         # divide the whole image into (grid_size x grid_size) grid, each cell with size cell_width
         grid_size = math.ceil(math.sqrt(obj_num))
         # FIXME: depends on the input resolution of your model, 224 for CLIP here
@@ -596,17 +596,7 @@ class CountDataset(Dataset):
             random_pixels = np.random.randint(0, 255, size=(224, 224, 3), dtype=np.uint8)
             canvas = Image.fromarray(random_pixels)
         elif self.empty_fill_type == 'real':
-            bg_path = random.choice(self.background_images)
-            bg_pil = Image.open(os.path.join(self.background_root, bg_path))
-            w, h = bg_pil.size
-            side_length = min(w, h)
-            # (left, upper, right, lower)
-            left = (w - side_length) / 2
-            top = (h - side_length) / 2
-            right = (w + side_length) / 2
-            bottom = (h + side_length) / 2
-            canvas = bg_pil.crop((left, top, right, bottom)).resize((224, 224))
-
+            canvas = Image.new('RGB', (224, 224), 0)
         else:
             raise KeyError()
 
@@ -624,6 +614,17 @@ class CountDataset(Dataset):
             fill_region = (x1, y1, x2, y2)
             canvas.paste(obj_region, fill_region)
 
+        if self.empty_fill_type == 'real':
+            bg_pil = bg_image
+            w, h = bg_pil.size
+            side_length = min(w, h)
+            # (left, upper, right, lower)
+            left = (w - side_length) / 2
+            top = (h - side_length) / 2
+            right = (w + side_length) / 2
+            bottom = (h + side_length) / 2
+            bg_pil = bg_pil.crop((left, top, right, bottom)).resize((224, 224))
+            canvas = Image.composite(canvas, bg_pil, canvas)
         return canvas
 
     def __getitem__(self, idx):
@@ -651,9 +652,14 @@ class CountDataset(Dataset):
         object_nums = random.sample(range(1, 11), self.hard_num)
         images = []
         texts = []
+
+        # select a background
+        bg_path = random.choice(self.background_images)
+        bg_pil = Image.open(os.path.join(self.background_root, bg_path))
+
         for i in range(self.hard_num):
             object_num = object_nums[i]
-            spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num)
+            spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num, bg_image=bg_pil)
             if self.transform is not None:
                 spliced_img = self.transform(spliced_img)
             images.append(spliced_img)
