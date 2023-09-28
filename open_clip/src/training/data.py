@@ -620,7 +620,7 @@ class CountDataset(Dataset):
         image = Image.open(image_path).convert('RGB')
 
         if self.segmented:
-            object_region_path = os.path.join(self.data_root, 'segments', class_name, class_name) + '.jpg'
+            object_region_path = os.path.join(self.data_root, 'segments', class_id, image_name) + '.jpg'
             object_region = Image.open(object_region_path).convert('RGB')
         else:
             box_path = os.path.join(self.data_root, 'boxes', class_id, image_name) + '.xml'
