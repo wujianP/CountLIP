@@ -33,7 +33,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 torchrun --nproc_per_node 8 -m main \
     --segmented-object \
     --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
-    --name="no-seg" \
+    --name="seg-real-bg" \
     --dataset-type="count" \
     --count-loss-type="inter" \
     --count-loss-weight=1. \

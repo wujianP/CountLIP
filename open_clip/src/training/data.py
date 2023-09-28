@@ -597,7 +597,7 @@ class CountDataset(Dataset):
             canvas = Image.fromarray(random_pixels)
         elif self.empty_fill_type == 'real':
             bg_path = random.choice(self.background_images)
-            bg_pil = Image.open(bg_path)
+            bg_pil = Image.open(os.path.join(self.background_root, bg_path))
             w, h = bg_pil.size
             side_length = min(w, h)
             # (left, upper, right, lower)
