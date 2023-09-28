@@ -615,8 +615,6 @@ class CountDataset(Dataset):
             canvas.paste(obj_region, fill_region)
 
         if self.empty_fill_type == 'real':
-            from IPython import embed
-            embed()
             foreground_array = np.array(canvas)
             background_array = np.array(bg_image)
             # 创建一个掩码，将前景图中黑色部分设为True，其余部分设为False
