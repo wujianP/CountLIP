@@ -451,6 +451,11 @@ def parse_args(args):
         help='the root path to imagenet dataset'
     )
     parser.add_argument(
+        "--background-root",
+        type=str,
+        help='the path to the background images'
+    )
+    parser.add_argument(
         "--hard-num",
         type=int,
         default=2,
@@ -459,7 +464,7 @@ def parse_args(args):
     parser.add_argument(
         "--empty-fill-type",
         type=str,
-        choices=['white', 'black', 'mean', 'gaussian'],
+        choices=['white', 'black', 'mean', 'gaussian', 'real'],
         default='mean',
         help='The pixel value for empty patches'
     )
@@ -492,6 +497,7 @@ def parse_args(args):
         type=str,
         help='the root dir to cache model weights'
     )
+
     # <<< added by countLIP <<<
     args = parser.parse_args(args)
 

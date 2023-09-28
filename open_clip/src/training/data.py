@@ -528,16 +528,18 @@ def get_synthetic_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None
 
 # >>> start: added by wjpeng >>>
 class CountDataset(Dataset):
-    def __init__(self, data_root, hard_num, transform, empty_fill_type, segmented, tokenizer):
+    def __init__(self, data_root, background_root, hard_num, transform, empty_fill_type, segmented, tokenizer):
         """
         This is designed for ImageNet-Boxes
         :param data_root: the root path of the dataset, default: /dev/shm/imagenet
+        :param background_root: the root path of the background dataset
         :param hard_num: the number of hard negatives per sample
         :param transform: image transformation
         :param empty_fill_type: what value to fill in the empty region
         :param segmented: if true, the background of an object is removed
         """
         self.data_root = data_root
+        self.background_root = background_root
         self.hard_num = hard_num
         self.transform = transform
         self.tokenize = tokenizer
@@ -557,6 +559,8 @@ class CountDataset(Dataset):
         for class_id in os.listdir(os.path.join(data_root, 'boxes')):
             for img_name in os.listdir(os.path.join(data_root, 'boxes', class_id)):
                 self.image_name_list.append(img_name.split('.')[0])
+
+        self.background_images = os.listdir(self.background_root)
 
     def __len__(self):
         return len(self.image_name_list)
@@ -591,6 +595,18 @@ class CountDataset(Dataset):
         elif self.empty_fill_type == 'gaussian':
             random_pixels = np.random.randint(0, 255, size=(224, 224, 3), dtype=np.uint8)
             canvas = Image.fromarray(random_pixels)
+        elif self.empty_fill_type == 'real':
+            bg_path = random.choice(self.background_images)
+            bg_pil = Image.open(bg_path)
+            w, h = bg_pil.size
+            side_length = min(w, h)
+            # (left, upper, right, lower)
+            left = (w - side_length) / 2
+            top = (h - side_length) / 2
+            right = (w + side_length) / 2
+            bottom = (h + side_length) / 2
+            canvas = bg_pil.crop((left, top, right, bottom)).resize((224, 224))
+
         else:
             raise KeyError()
 
@@ -661,6 +677,7 @@ def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
         preprocess_fn.transforms[-1]
     ])
     dataset = CountDataset(data_root=args.data_root,
+                           background_root=args.background_root,
                            hard_num=args.hard_num,
                            transform=transform_fn,
                            empty_fill_type=args.empty_fill_type,

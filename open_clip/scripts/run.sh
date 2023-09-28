@@ -31,14 +31,14 @@ git pull
 
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 torchrun --nproc_per_node 8 -m main \
-    --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
-    --name="seg" \
-    --dataset-type="count" \
     --segmented-object \
+    --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
+    --name="no-seg" \
+    --dataset-type="count" \
     --count-loss-type="inter" \
     --count-loss-weight=1. \
     --hard-num=4 \
-    --empty-fill-type="black" \
+    --empty-fill-type="real" \
     --batch-size=128 \
     --epochs=2 \
     --lr=1e-6 \
@@ -49,6 +49,7 @@ torchrun --nproc_per_node 8 -m main \
     --workers 8 \
     --copy-codebase \
     --data-root="/dev/shm/imagenet" \
+    --background-root="/DDN_ROOT/wjpeng/dataset/BG-20k/train" \
     --train-data="zhan-wei-fu" \
     --log-every-n-steps 10 \
     --eval-google-every-n-steps 10
