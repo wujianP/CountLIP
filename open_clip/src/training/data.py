@@ -617,7 +617,15 @@ class CountDataset(Dataset):
         if self.empty_fill_type == 'real':
             from IPython import embed
             embed()
-            canvas = Image.composite(canvas, bg_image, canvas)
+            foreground_array = np.array(canvas)
+            background_array = np.array(bg_image)
+            # 创建一个掩码，将前景图中黑色部分设为True，其余部分设为False
+            mask = (foreground_array[:, :, 0] == 0) & (foreground_array[:, :, 1] == 0) & (
+                        foreground_array[:, :, 2] == 0)
+            # 将前景图中黑色部分替换为背景图对应位置的像素
+            combined_array = np.where(mask[:, :, np.newaxis], background_array, foreground_array)
+            # 创建新的PIL图像对象
+            canvas = Image.fromarray(combined_array)
         return canvas
 
     def __getitem__(self, idx):
