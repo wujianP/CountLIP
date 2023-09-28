@@ -32,7 +32,7 @@ git pull
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 torchrun --nproc_per_node 8 -m main \
     --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
-    --name="1" \
+    --name="seg" \
     --dataset-type="count" \
     --segmented-object \
     --count-loss-type="inter" \
@@ -45,9 +45,10 @@ torchrun --nproc_per_node 8 -m main \
     --warmup 100 \
     --pretrained="openai" \
     --model="ViT-B-32"\
+    --model-root="/discobox/wjpeng/weights/clip" \
     --workers 8 \
     --copy-codebase \
-    --data-root /dev/shm/imagenet \
+    --data-root="/dev/shm/imagenet" \
     --train-data="zhan-wei-fu" \
     --log-every-n-steps 10 \
     --eval-google-every-n-steps 10

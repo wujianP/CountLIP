@@ -235,6 +235,7 @@ def main(args):
         image_std=args.image_std,
         aug_cfg=args.aug_cfg,
         output_dict=True,
+        cache_dir=os.path.join(args.model_root, args.model, args.pretrained),
         **model_kwargs,
     )
     if args.distill:

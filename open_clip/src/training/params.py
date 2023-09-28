@@ -487,6 +487,11 @@ def parse_args(args):
         default=200,
         help='evaluate on Google CountBench every n steps'
     )
+    parser.add_argument(
+        "--model-root",
+        type=str,
+        help='the root dir to cache model weights'
+    )
     # <<< added by countLIP <<<
     args = parser.parse_args(args)
 
