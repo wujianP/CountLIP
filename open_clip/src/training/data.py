@@ -615,16 +615,9 @@ class CountDataset(Dataset):
             canvas.paste(obj_region, fill_region)
 
         if self.empty_fill_type == 'real':
-            bg_pil = bg_image
-            w, h = bg_pil.size
-            side_length = min(w, h)
-            # (left, upper, right, lower)
-            left = (w - side_length) / 2
-            top = (h - side_length) / 2
-            right = (w + side_length) / 2
-            bottom = (h + side_length) / 2
-            bg_pil = bg_pil.crop((left, top, right, bottom)).resize((224, 224))
-            canvas = Image.composite(canvas, bg_pil, canvas)
+            from IPython import embed
+            embed()
+            canvas = Image.composite(canvas, bg_image, canvas)
         return canvas
 
     def __getitem__(self, idx):
@@ -650,16 +643,19 @@ class CountDataset(Dataset):
 
         # generate n spliced images
         object_nums = random.sample(range(1, 11), self.hard_num)
+        bg_path = random.choice(self.background_images)
+        bg_img = Image.open(os.path.join(self.background_root, bg_path))
+        w, h = bg_img.size
+        side_length = min(w, h)
+        # (left, upper, right, lower)
+        left, top, right, bottom = (w - side_length) / 2, (h - side_length) / 2, (w + side_length) / 2, (h + side_length) / 2
+        bg_img = bg_img.crop((left, top, right, bottom)).resize((224, 224))
         images = []
         texts = []
 
-        # select a background
-        bg_path = random.choice(self.background_images)
-        bg_pil = Image.open(os.path.join(self.background_root, bg_path))
-
         for i in range(self.hard_num):
             object_num = object_nums[i]
-            spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num, bg_image=bg_pil)
+            spliced_img = self.splice_image(obj_region=object_region, obj_num=object_num, bg_image=bg_img)
             if self.transform is not None:
                 spliced_img = self.transform(spliced_img)
             images.append(spliced_img)
