@@ -618,8 +618,8 @@ class CountDataset(Dataset):
             foreground_array = np.array(canvas)
             background_array = np.array(bg_image)
             # 创建一个掩码，将前景图中黑色部分设为True，其余部分设为False
-            mask = (foreground_array[:, :, 0] <= 20) & (foreground_array[:, :, 1] <= 20) & (
-                        foreground_array[:, :, 2] <= 20)
+            mask = (foreground_array[:, :, 0] <= 12) & (foreground_array[:, :, 1] <= 12) & (
+                        foreground_array[:, :, 2] <= 12)
             # 将前景图中黑色部分替换为背景图对应位置的像素
             combined_array = np.where(mask[:, :, np.newaxis], background_array, foreground_array)
             # 创建新的PIL图像对象

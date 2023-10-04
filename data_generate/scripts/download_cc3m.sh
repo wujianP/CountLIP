@@ -5,4 +5,4 @@ cd /DDN_ROOT/wjpeng/dataset/CC3M/
 
 img2dataset --url_list Train_GCC-training.tsv --input_format "tsv"\
          --url_col "url" --caption_col "caption" --output_format webdataset\
-           --output_folder data --processes_count 16 --thread_count 128 --resize_mode no
+           --output_folder data --processes_count 16 --thread_count 256 --resize_mode no  --incremental

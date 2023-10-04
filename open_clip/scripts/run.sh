@@ -33,15 +33,15 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 torchrun --nproc_per_node 8 -m main \
     --segmented-object \
     --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/waiting" \
-    --name="seg-black-bg-1e-8--" \
+    --name="seg-real-bg-1e-6" \
     --dataset-type="count" \
     --count-loss-type="inter" \
     --count-loss-weight=1. \
     --hard-num=4 \
-    --empty-fill-type="black" \
+    --empty-fill-type="real" \
     --batch-size=128 \
-    --epochs=5 \
-    --lr=1e-8 \
+    --epochs=2 \
+    --lr=1e-6 \
     --warmup 100 \
     --pretrained="openai" \
     --model="ViT-B-32"\
