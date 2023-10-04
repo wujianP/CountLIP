@@ -17,7 +17,7 @@ def my_collate_fn(batch):
 
 @torch.no_grad()
 def google_evaluate(model, val_trans, tokenizer):
-
+    model.eval()
     # load dataset
     dataset = GoogleCountBench(data_root='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
                                transform=val_trans,
@@ -63,7 +63,7 @@ def google_evaluate(model, val_trans, tokenizer):
                 correct_num += 1
     acc = correct_num / len(dataset) * 100
     dist = total_dist / len(dataset)
-
+    model.train()
     return acc, dist
 
 

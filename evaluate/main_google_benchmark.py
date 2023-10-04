@@ -39,6 +39,7 @@ def main():
 
     correct_num = 0
     total_dist = 0
+    model.eval()
     for cur_idx, (images, all_texts, labels) in enumerate(dataloader):
         B, C, L = all_texts.shape   # B: batch size, C: 2-10, L: sentence length
 
