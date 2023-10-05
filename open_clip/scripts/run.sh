@@ -6,7 +6,7 @@ git pull
 rm -rf /DDN_ROOT/wjpeng/ckp/CountLIP/debug
 CUDA_VISIBLE_DEVICES=0 python -m main \
     --dataset-type="webdataset" \
-    --train-data="/DDN_ROOT/wjpeng/dataset/LAION400M/laion400m-data-00-01/{00000..02586}.tar" \
+    --train-data="/DDN_ROOT/wjpeng/dataset/CC3M/data/{00000..00331}.tar" \
     --train-num-samples=100000 \
     --count-loss-type="intra" \
     --count-loss-weight=1. \

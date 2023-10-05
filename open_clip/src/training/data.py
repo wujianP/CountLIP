@@ -330,8 +330,6 @@ class ResampledShards2(IterableDataset):
 
 
 def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokenizer=None):
-    from IPython import embed
-    embed()
     input_shards = args.train_data if is_train else args.val_data
     assert input_shards is not None
     resampled = getattr(args, 'dataset_resampled', False) and is_train
@@ -755,4 +753,13 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
     if args.imagenet_v2 is not None:
         data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
 
+    #  FIXME: only train
+    if args.dataset_type == 'mix':
+        """both normal text-image dataset and counting dataset"""
+        data["train-normal"] = get_wds_dataset(
+            args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer
+        )
+        data['train-count'] = get_count_dataset(
+            args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer
+        )
     return data
