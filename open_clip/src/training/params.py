@@ -120,7 +120,7 @@ def parse_args(args):
         help="Optional identifier for the experiment when storing logs. Otherwise use current time.",
     )
     parser.add_argument(
-        "--workers", type=int, default=4, help="Number of dataloader workers per GPU."
+        "--workers", type=int, default=6, help="Number of dataloader workers per GPU."
     )
     parser.add_argument(
         "--batch-size", type=int, default=64, help="Batch size per GPU."
@@ -453,6 +453,7 @@ def parse_args(args):
     parser.add_argument(
         "--count-background-root",
         type=str,
+        default='/DDN_ROOT/wjpeng/dataset/BG-20k/train',
         help='the path to the background images'
     )
     parser.add_argument(
@@ -500,6 +501,7 @@ def parse_args(args):
     parser.add_argument(
         "--model-root",
         type=str,
+        default='/discobox/wjpeng/weights/clip',
         help='the root dir to cache model weights'
     )
 
@@ -508,6 +510,12 @@ def parse_args(args):
         type=str,
         default='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
         help='the root dir to google count benchmark'
+    )
+
+    parser.add_argument(
+        "--steps-per-epoch",
+        type=int,
+        default=500
     )
 
     # <<< added by countLIP <<<

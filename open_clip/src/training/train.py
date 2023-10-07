@@ -70,16 +70,14 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     loss_count = losses['count-loss']
     loss_normal = losses['normal-loss']
 
-    from IPython import embed
-    print('loss')
-    embed()
-
     model.train()
     if args.distill:
         dist_model.eval()
 
-    data['train'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
-    dataloader = data['train'].dataloader
+    data['train-normal'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
+    data['train-count'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
+    dataloader_normal = data['train-normal'].dataloader
+    dataloader_count = data['train-count'].dataloader
     num_batches_per_epoch = dataloader.num_batches // args.accum_freq
     sample_digits = math.ceil(math.log(dataloader.num_samples + 1, 10))
 
@@ -128,55 +126,56 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
 
             backward(total_loss, scaler)
         else:
-            # First, cache the features without any gradient tracking.
-            with torch.no_grad():
-                with autocast():
-                    model_out = model(images, texts)
-
-                    for f in ("logit_scale", "logit_bias"):
-                        model_out.pop(f, None)
-
-                    for key, val in model_out.items():
-                        if key in accum_features:
-                            accum_features[key].append(val)
-                        else:
-                            accum_features[key] = [val]
-
-                accum_images.append(images)
-                accum_texts.append(texts)
-
-            # If (i + 1) % accum_freq is not zero, move on to the next batch.
-            if ((i + 1) % args.accum_freq) > 0:
-                # FIXME this makes data time logging unreliable when accumulating
-                continue
-
-            # Now, ready to take gradients for the last accum_freq batches.
-            # Re-do the forward pass for those batches, and use the cached features from the other batches as negatives.
-            # Call backwards each time, but only step optimizer at the end.
-            optimizer.zero_grad()
-            for j in range(args.accum_freq):
-                images = accum_images[j]
-                texts = accum_texts[j]
-                with autocast():
-                    model_out = model(images, texts)
-
-                    inputs_no_accum = {}
-                    inputs_no_accum["logit_scale"] = logit_scale = model_out.pop("logit_scale")
-                    if "logit_bias" in model_out:
-                        inputs_no_accum["logit_bias"] = model_out.pop("logit_bias")
-
-                    inputs = {}
-                    for key, val in accum_features.items():
-                        accumulated = accum_features[key]
-                        inputs[key] = torch.cat(accumulated[:j] + [model_out[key]] + accumulated[j + 1:])
-
-                    losses = loss(**inputs, **inputs_no_accum, output_dict=True)
-                    del inputs
-                    del inputs_no_accum
-                    total_loss = sum(losses.values())
-                    losses["loss"] = total_loss
-
-                backward(total_loss, scaler)
+            raise NotImplementedError('not support yet')
+            # # First, cache the features without any gradient tracking.
+            # with torch.no_grad():
+            #     with autocast():
+            #         model_out = model(images, texts)
+            #
+            #         for f in ("logit_scale", "logit_bias"):
+            #             model_out.pop(f, None)
+            #
+            #         for key, val in model_out.items():
+            #             if key in accum_features:
+            #                 accum_features[key].append(val)
+            #             else:
+            #                 accum_features[key] = [val]
+            #
+            #     accum_images.append(images)
+            #     accum_texts.append(texts)
+            #
+            # # If (i + 1) % accum_freq is not zero, move on to the next batch.
+            # if ((i + 1) % args.accum_freq) > 0:
+            #     # FIXME this makes data time logging unreliable when accumulating
+            #     continue
+            #
+            # # Now, ready to take gradients for the last accum_freq batches.
+            # # Re-do the forward pass for those batches, and use the cached features from the other batches as negatives.
+            # # Call backwards each time, but only step optimizer at the end.
+            # optimizer.zero_grad()
+            # for j in range(args.accum_freq):
+            #     images = accum_images[j]
+            #     texts = accum_texts[j]
+            #     with autocast():
+            #         model_out = model(images, texts)
+            #
+            #         inputs_no_accum = {}
+            #         inputs_no_accum["logit_scale"] = logit_scale = model_out.pop("logit_scale")
+            #         if "logit_bias" in model_out:
+            #             inputs_no_accum["logit_bias"] = model_out.pop("logit_bias")
+            #
+            #         inputs = {}
+            #         for key, val in accum_features.items():
+            #             accumulated = accum_features[key]
+            #             inputs[key] = torch.cat(accumulated[:j] + [model_out[key]] + accumulated[j + 1:])
+            #
+            #         losses = loss(**inputs, **inputs_no_accum, output_dict=True)
+            #         del inputs
+            #         del inputs_no_accum
+            #         total_loss = sum(losses.values())
+            #         losses["loss"] = total_loss
+            #
+            #     backward(total_loss, scaler)
 
         if scaler is not None:
             if args.horovod:
