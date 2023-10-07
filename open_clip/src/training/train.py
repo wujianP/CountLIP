@@ -90,8 +90,6 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     end = time.time()
     # for i, batch in enumerate(dataloader):
     for i in range(num_batches_per_epoch):
-        from IPython import embed
-        embed()
         i_accum = i // args.accum_freq
         step = num_batches_per_epoch * epoch + i_accum
 
