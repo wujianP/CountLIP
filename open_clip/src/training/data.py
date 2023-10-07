@@ -823,6 +823,11 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
             shuffle=False,
             drop_last=False
         )
+        # data iterator
+        data['iterator'] = {
+            'train-normal': iter(data["train-normal"].dataloader),
+            'train-count': iter(data["train-normal"].dataloader)
+        }
 
     else:
         if args.train_data or args.dataset_type == "synthetic":

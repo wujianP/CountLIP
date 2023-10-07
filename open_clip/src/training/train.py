@@ -81,8 +81,8 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     data['train-count'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     dataloader_normal = data['train-normal'].dataloader
     dataloader_count = data['train-count'].dataloader
-    num_batches_per_epoch = dataloader.num_batches // args.accum_freq
-    sample_digits = math.ceil(math.log(dataloader.num_samples + 1, 10))
+    num_batches_per_epoch = dataloader_normal.num_batches // args.accum_freq
+    sample_digits = math.ceil(math.log(dataloader_normal.num_samples + 1, 10))
 
     if args.accum_freq > 1:
         accum_images, accum_texts, accum_features = [], [], {}
@@ -91,13 +91,18 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     batch_time_m = AverageMeter()
     data_time_m = AverageMeter()
     end = time.time()
-    for i, batch in enumerate(dataloader):
+    # for i, batch in enumerate(dataloader):
+    for i in range(num_batches_per_epoch):
+        from IPython import embed
+        embed()
         i_accum = i // args.accum_freq
         step = num_batches_per_epoch * epoch + i_accum
 
         if not args.skip_scheduler:
             scheduler(step)
 
+        # get data
+        
         # batch: [img_1s, img_2s, ..., txt_1s, txt_2s, ...]
         assert args.hard_num == len(batch)//2
         images = batch[:len(batch)//2]  # the first half is images
