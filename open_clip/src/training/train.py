@@ -74,9 +74,6 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     if args.distill:
         dist_model.eval()
 
-    from IPython import embed
-    print(1)
-    embed()
     # FIXME: check set_epoch()
     data['train-normal'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     data['train-count'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
@@ -103,35 +100,57 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
 
         # get data
         normal_batch = next(data['iterator']['train-normal'])
-        count_batch = next(data['iterator']['train-count'])
-        # batch: [img_1s, img_2s, ..., txt_1s, txt_2s, ...]
-        assert args.hard_num == len(batch)//2
-        images = batch[:len(batch)//2]  # the first half is images
-        images = torch.cat(images, dim=0)   # [b*3*h*w, ..., b*3*h*w] -> (bn)*3*h*w, n is the hard_num
-        images = images.to(device=device, dtype=input_dtype, non_blocking=True)
-        texts = batch[len(batch)//2:]   # the second half is texts
-        texts = torch.cat(texts, dim=0)
-        texts = texts.to(device=device, non_blocking=True)
+        try:
+            count_batch = next(data['iterator']['train-count'])
+        except:
+            data['iterator']['train-count'] = iter(data['train-count'].dataloader)
+            count_batch = next(data['iterator']['train-count'])
+        assert args.hard_num == len(count_batch) // 2
 
-        # images, texts = batch
-        # images = images.to(device=device, dtype=input_dtype, non_blocking=True)
-        # texts = texts.to(device=device, non_blocking=True)
+        # normal batch: [imgs, txts]
+        # count batch: [img_1s, img_2s, ..., txt_1s, txt_2s, ...]
+        normal_images = normal_batch[0]
+        count_images = count_batch[:len(count_batch) // 2]  # the first half is images
+        count_images = torch.cat(count_images, dim=0)   # [b*3*h*w, ..., b*3*h*w] -> (bn)*3*h*w, n is the hard_num
+        all_images = torch.cat([normal_images, count_images], dim=0)
+        all_images = all_images.to(device=device, dtype=input_dtype, non_blocking=True)
+
+        normal_texts = normal_batch[1]
+        count_texts = count_batch[len(count_batch) // 2:]   # the second half is texts
+        count_texts = torch.cat(count_texts, dim=0)
+        all_texts = torch.cat([normal_texts, count_texts], dim=0)
+        all_texts = all_texts.to(device=device, non_blocking=True)
 
         data_time_m.update(time.time() - end)
         optimizer.zero_grad()
 
         if args.accum_freq == 1:
             with autocast():
-                model_out = model(images, texts)
-                logit_scale = model_out["logit_scale"]
-                if args.distill:
-                    with torch.no_grad():
-                        dist_model_out = dist_model(images, texts)
-                    model_out.update({f'dist_{k}': v for k, v in dist_model_out.items()})
-                losses = loss(**model_out, output_dict=True, hard_num=args.hard_num)
+                all_model_out = model(all_images, all_texts)
+                logit_scale = all_model_out["logit_scale"]
 
-                total_loss = sum(losses.values())
-                losses["loss"] = total_loss
+                normal_model_out = {
+                    'image_features': all_model_out['image_features'][:args.batch_size],
+                    'text_features': all_model_out['text_features'][:args.batch_size],
+                    'logit_scale': all_model_out['logit_scale']
+                }
+
+                count_model_out = {
+                    'image_features': all_model_out['image_features'][args.batch_size:],
+                    'text_features': all_model_out['text_features'][args.batch_size:],
+                    'logit_scale': all_model_out['logit_scale']
+                }
+
+                losses_normal = losses['normal-loss'](**normal_model_out, output_dict=True, hard_num=args.hard_num)
+                losses_count = losses['count-loss'](**count_model_out, output_dict=True, hard_num=args.hard_num)
+
+                total_loss = sum(losses_normal.values()) + args.count_loss_weight * sum(losses_count.values())
+
+                loss_dict = {
+                    'total': total_loss,
+                    'normal': sum(losses_normal.values()),
+                    'count': args.count_loss_weight * sum(losses_count.values())
+                }
 
             backward(total_loss, scaler)
         else:
@@ -226,9 +245,10 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
         # <<< added by countLIP: evaluate on Google CountBench <<<
 
         if is_master(args) and (i_accum % args.log_every_n_steps == 0 or batch_count == num_batches_per_epoch):
-            batch_size = len(images)
+            batch_size = len(all_images)
             num_samples = batch_count * batch_size * args.accum_freq * args.world_size
-            samples_per_epoch = dataloader.num_samples
+            # samples_per_epoch = dataloader.num_samples
+            samples_per_epoch = batch_size * num_batches_per_epoch
             percent_complete = 100.0 * batch_count / num_batches_per_epoch
 
             # NOTE loss is coarsely sampled, just master node and per log update
