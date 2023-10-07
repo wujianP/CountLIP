@@ -422,6 +422,7 @@ def main(args):
         evaluate(model, data, start_epoch, args, writer)
         return
 
+
     loss = create_loss(args)
 
     for epoch in range(start_epoch, args.epochs):
