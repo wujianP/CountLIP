@@ -183,7 +183,7 @@ def filter_no_caption_or_no_image(sample):
 
 def log_and_continue(exn):
     """Call in an exception handler to ignore any exception, issue a warning, and continue."""
-    logging.warning(f'Handling webdataset error ({repr(exn)}). Ignoring.')
+    # logging.warning(f'Handling webdataset error ({repr(exn)}). Ignoring.')
     return True
 
 
