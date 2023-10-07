@@ -826,7 +826,7 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
         # data iterator
         data['iterator'] = {
             'train-normal': iter(data["train-normal"].dataloader),
-            'train-count': iter(data["train-normal"].dataloader)
+            'train-count': iter(data["train-count"].dataloader)
         }
 
     else:

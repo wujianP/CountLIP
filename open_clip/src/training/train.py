@@ -77,10 +77,10 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     from IPython import embed
     print(1)
     embed()
+    # FIXME: check set_epoch()
     data['train-normal'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     data['train-count'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     dataloader_normal = data['train-normal'].dataloader
-    dataloader_count = data['train-count'].dataloader
     num_batches_per_epoch = dataloader_normal.num_batches // args.accum_freq
     sample_digits = math.ceil(math.log(dataloader_normal.num_samples + 1, 10))
 
@@ -102,7 +102,8 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
             scheduler(step)
 
         # get data
-        
+        normal_batch = next(data['iterator']['train-normal'])
+        count_batch = next(data['iterator']['train-count'])
         # batch: [img_1s, img_2s, ..., txt_1s, txt_2s, ...]
         assert args.hard_num == len(batch)//2
         images = batch[:len(batch)//2]  # the first half is images
