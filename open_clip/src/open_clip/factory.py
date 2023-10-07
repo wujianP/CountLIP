@@ -10,16 +10,15 @@ from typing import Any, Dict, Optional, Tuple, Union
 import torch
 
 from .constants import OPENAI_DATASET_MEAN, OPENAI_DATASET_STD
-from .model import CLIP, CustomTextCLIP, convert_weights_to_lp, convert_to_custom_text_state_dict,\
+from .model import CLIP, CustomTextCLIP, convert_weights_to_lp, convert_to_custom_text_state_dict, \
     resize_pos_embed, get_cast_dtype
 from .coca_model import CoCa
 from .loss import ClipLoss, DistillClipLoss, CoCaLoss, SigLipLoss, IntraCountLoss
 from .openai import load_openai_model
-from .pretrained import is_pretrained_cfg, get_pretrained_cfg, download_pretrained,\
+from .pretrained import is_pretrained_cfg, get_pretrained_cfg, download_pretrained, \
     list_pretrained_tags_by_model, download_pretrained_from_hf
 from .transform import image_transform, AugmentationCfg
 from .tokenizer import HFTokenizer, tokenize
-
 
 HF_HUB_PREFIX = 'hf-hub:'
 _MODEL_CONFIG_PATHS = [Path(__file__).parent / f"model_configs/"]
@@ -213,6 +212,7 @@ def create_model(
                     if isinstance(m, LayerNormFp32):
                         m.weight.data = m.weight.data.to(torch.float32)
                         m.bias.data = m.bias.data.to(torch.float32)
+
                 model.apply(_convert_ln)
             else:
                 model.to(device=device)
@@ -294,9 +294,15 @@ def create_loss(args):
         )
     elif args.count_loss_type == 'intra':
         # FIXME: complete this
-        return IntraCountLoss()
+        return IntraCountLoss(
+            local_loss=args.local_loss,
+            gather_with_grad=args.gather_with_grad,
+            cache_labels=True,
+            rank=args.rank,
+            world_size=args.world_size,
+            use_horovod=args.horovod, )
     elif args.count_loss_type == 'inter':
-        pass    # also return ClipLoss
+        pass  # also return ClipLoss
     return ClipLoss(
         local_loss=args.local_loss,
         gather_with_grad=args.gather_with_grad,
@@ -305,6 +311,41 @@ def create_loss(args):
         world_size=args.world_size,
         use_horovod=args.horovod,
     )
+
+
+# >>> start: added by countLIP >>>
+def create_multiple_loss(args):
+    losses = {}
+    # create count loss
+    if args.count_loss_type == 'intra':
+        losses['count-loss'] = IntraCountLoss(
+            local_loss=args.local_loss,
+            gather_with_grad=args.gather_with_grad,
+            cache_labels=True,
+            rank=args.rank,
+            world_size=args.world_size,
+            use_horovod=args.horovod, )
+    elif args.count_loss_type == 'inter':
+        losses['count-loss'] = ClipLoss(
+            local_loss=args.local_loss,
+            gather_with_grad=args.gather_with_grad,
+            cache_labels=True,
+            rank=args.rank,
+            world_size=args.world_size,
+            use_horovod=args.horovod,
+        )
+    # create normal loss
+    losses['normal-loss'] = ClipLoss(
+            local_loss=args.local_loss,
+            gather_with_grad=args.gather_with_grad,
+            cache_labels=True,
+            rank=args.rank,
+            world_size=args.world_size,
+            use_horovod=args.horovod,
+        )
+
+    return losses
+# <<< end: added by countLIP <<<
 
 
 def create_model_and_transforms(

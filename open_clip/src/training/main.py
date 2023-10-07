@@ -27,7 +27,7 @@ try:
 except ImportError:
     hvd = None
 
-from open_clip import create_model_and_transforms, trace_model, get_tokenizer, create_loss
+from open_clip import create_model_and_transforms, trace_model, get_tokenizer, create_loss, create_multiple_loss
 from training.data import get_data
 from training.distributed import is_master, init_distributed_device, broadcast_object
 from training.logger import setup_logging
@@ -422,14 +422,13 @@ def main(args):
         evaluate(model, data, start_epoch, args, writer)
         return
 
-
-    loss = create_loss(args)
+    losses = create_multiple_loss(args)
 
     for epoch in range(start_epoch, args.epochs):
         if is_master(args):
             logging.info(f'Start epoch {epoch}')
 
-        train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist_model, args, preprocess_val, get_tokenizer(args.model))
+        train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, dist_model, args)
         completed_epoch = epoch + 1
 
         # >>> added by countLIP: evaluate on Google CountBench >>>
