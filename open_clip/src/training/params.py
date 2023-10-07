@@ -51,7 +51,8 @@ def parse_args(args):
         "--train-num-samples",
         type=int,
         default=None,
-        help="Number of samples in dataset. Required for webdataset if not available in info file.",
+        help="Number of samples in dataset. Required for webdataset if not available in info file."
+             "-1 means adaptive computed with: N=batch-size * gpu-num * steps-per-epoch",
     )
     parser.add_argument(
         "--val-num-samples",

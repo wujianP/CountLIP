@@ -74,6 +74,9 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     if args.distill:
         dist_model.eval()
 
+    from IPython import embed
+    print(1)
+    embed()
     data['train-normal'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     data['train-count'].set_epoch(epoch)  # set epoch in process safe manner via sampler or shared_epoch
     dataloader_normal = data['train-normal'].dataloader

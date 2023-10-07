@@ -338,7 +338,12 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
     num_shards = None
     if is_train:
         if args.train_num_samples is not None:
-            num_samples = args.train_num_samples
+            if args.train_num_samples == -1:
+                # adaptively compute the virtual dataset size
+                num_samples = args.batch_size * args.world_size * args.steps_per_epoch
+                assert num_samples <= 25870000
+            else:
+                num_samples = args.train_num_samples
         else:
             num_samples, num_shards = get_dataset_size(input_shards)
             if not num_samples:
@@ -400,9 +405,6 @@ def get_wds_dataset(args, preprocess_img, is_train, epoch=0, floor=False, tokeni
     ])
 
     dataset = wds.DataPipeline(*pipeline)
-
-    from IPython import embed
-    embed()
 
     if is_train:
         if not resampled:
