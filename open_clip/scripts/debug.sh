@@ -1,4 +1,3 @@
-
 conda activate /discobox/wjpeng/env/countLIP
 cd /discobox/wjpeng/code/202306/CountLIP/open_clip/src/training
 git pull
