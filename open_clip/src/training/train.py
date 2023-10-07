@@ -97,7 +97,11 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
             scheduler(step)
 
         # get data
-        normal_batch = next(data['iterator']['train-normal'])
+        try:
+            normal_batch = next(data['iterator']['train-normal'])
+        except:
+            data['iterator']['train-normal'] = iter(data['train-normal'].dataloader)
+            normal_batch = next(data['iterator']['train-normal'])
         try:
             count_batch = next(data['iterator']['train-count'])
         except:

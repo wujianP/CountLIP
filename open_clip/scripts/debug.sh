@@ -23,4 +23,5 @@ torchrun --nproc_per_node 8 -m main \
     --pretrained="openai" \
     --model="ViT-B-32"\
     --copy-codebase \
+    --eval-google-every-n-steps 100 \
     --warmup 1000
