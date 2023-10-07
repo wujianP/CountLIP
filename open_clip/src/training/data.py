@@ -685,8 +685,8 @@ def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
         preprocess_fn.transforms[-2],
         preprocess_fn.transforms[-1]
     ])
-    dataset = CountDataset(data_root=args.data_root,
-                           background_root=args.background_root,
+    dataset = CountDataset(data_root=args.count_data_root,
+                           background_root=args.count_background_root,
                            hard_num=args.hard_num,
                            transform=transform_fn,
                            empty_fill_type=args.empty_fill_type,
@@ -699,7 +699,7 @@ def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
 
     dataloader = DataLoader(
         dataset=dataset,
-        batch_size=args.batch_size,
+        batch_size=args.count_batch_size,
         shuffle=shuffle,
         num_workers=args.workers,
         pin_memory=True,
@@ -753,7 +753,7 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
     if args.imagenet_v2 is not None:
         data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
 
-    #  FIXME: only train
+    #  FIXME: only train mode supported
     if args.dataset_type == 'mix':
         """both normal text-image dataset and counting dataset"""
         data["train-normal"] = get_wds_dataset(

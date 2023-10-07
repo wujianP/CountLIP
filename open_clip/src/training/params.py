@@ -445,13 +445,13 @@ def parse_args(args):
 
     # >>> added by countLIP >>>
     parser.add_argument(
-        "--data-root",
+        "--count-data-root",
         type=str,
         default='/dev/shm/imagenet',
         help='the root path to imagenet dataset'
     )
     parser.add_argument(
-        "--background-root",
+        "--count-background-root",
         type=str,
         help='the path to the background images'
     )
@@ -465,7 +465,7 @@ def parse_args(args):
         "--empty-fill-type",
         type=str,
         choices=['white', 'black', 'mean', 'gaussian', 'real'],
-        default='mean',
+        default='black',
         help='The pixel value for empty patches'
     )
     parser.add_argument(
@@ -480,6 +480,11 @@ def parse_args(args):
         type=float,
         default=1.,
         help='the relative loss weight of counting loss term'
+    )
+    parser.add_argument(
+        "--count-batch-size",
+        type=int,
+        help='the batch size of count dataset, the real batch size is count-batch-size * hard-num'
     )
     parser.add_argument(
         "--segmented-object",
