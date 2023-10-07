@@ -303,10 +303,6 @@ def main(args):
     optimizer = None
     scaler = None
 
-    from IPython import embed
-    print('1')
-    embed()
-
     if args.train_data or args.dataset_type == "synthetic":
         assert not args.trace, 'Cannot train with traced model'
 
@@ -360,6 +356,7 @@ def main(args):
 
     # create scheduler if train
     scheduler = None
+    # FIXME: how to calculate steps
     if 'train' in data and optimizer is not None:
         total_steps = (data["train"].dataloader.num_batches // args.accum_freq) * args.epochs
         if args.lr_scheduler == "cosine":
@@ -414,7 +411,7 @@ def main(args):
         logging.info('Compiling model...')
         model = torch.compile(original_model)
 
-    if 'train' not in data:
+    if 'train' not in data and 'train-normal' not in data and 'train-count':
         # If using int8, convert to inference mode.
         if args.use_bnb_linear is not None:
             from open_clip.utils import convert_int8_model_to_inference_mode
