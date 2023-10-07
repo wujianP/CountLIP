@@ -353,8 +353,6 @@ def main(args):
 
     # initialize datasets
     data = get_data(args, (preprocess_train, preprocess_val), epoch=start_epoch, tokenizer=get_tokenizer(args.model))
-    from IPython import embed
-    embed()
     assert len(data), 'At least one train or eval dataset must be specified.'
 
     # create scheduler if train

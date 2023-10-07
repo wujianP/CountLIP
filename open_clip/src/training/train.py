@@ -71,7 +71,7 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     loss_normal = losses['normal_loss']
 
     from IPython import embed
-    print('2')
+    print('loss')
     embed()
 
     model.train()
