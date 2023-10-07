@@ -619,7 +619,7 @@ class CountDataset(Dataset):
             background_array = np.array(bg_image)
             # 创建一个掩码，将前景图中黑色部分设为True，其余部分设为False
             mask = (foreground_array[:, :, 0] <= 12) & (foreground_array[:, :, 1] <= 12) & (
-                        foreground_array[:, :, 2] <= 12)
+                    foreground_array[:, :, 2] <= 12)
             # 将前景图中黑色部分替换为背景图对应位置的像素
             combined_array = np.where(mask[:, :, np.newaxis], background_array, foreground_array)
             # 创建新的PIL图像对象
@@ -654,7 +654,8 @@ class CountDataset(Dataset):
         w, h = bg_img.size
         side_length = min(w, h)
         # (left, upper, right, lower)
-        left, top, right, bottom = (w - side_length) / 2, (h - side_length) / 2, (w + side_length) / 2, (h + side_length) / 2
+        left, top, right, bottom = (w - side_length) / 2, (h - side_length) / 2, (w + side_length) / 2, (
+                    h + side_length) / 2
         bg_img = bg_img.crop((left, top, right, bottom)).resize((224, 224))
         images = []
         texts = []
@@ -710,6 +711,63 @@ def get_count_dataset(args, preprocess_fn, is_train, epoch=0, tokenizer=None):
     dataloader.num_batches = len(dataloader)
 
     return DataInfo(dataloader, sampler)
+
+
+class GoogleCountBench(Dataset):
+    def __init__(self, data_root, transform, tokenizer):
+        self.data_root = data_root
+        self.transform = transform
+        self.tokenize = tokenizer
+
+        files = os.listdir(self.data_root)
+        self.image_list = []
+        self.ann_list = []
+        for file in files:
+            if file.endswith('.jpg'):
+                self.image_list.append(file)
+            if file.endswith('.json'):
+                self.ann_list.append(file)
+        self.image_list = sorted(self.image_list)
+        self.ann_list = sorted(self.ann_list)
+
+        # check correctness
+        assert len(self.ann_list) == len(self.image_list)
+        for img, ann in zip(self.image_list, self.ann_list):
+            assert img.split('.')[0] == ann.split('.')[0]
+
+    def __len__(self):
+        return len(self.image_list)
+
+    def __getitem__(self, idx):
+        image_name = self.image_list[idx]
+        image_path = os.path.join(self.data_root, image_name)
+        image = Image.open(image_path).convert('RGB')
+        image = self.transform(image)
+
+        ann_name = self.ann_list[idx]
+        ann_path = os.path.join(self.data_root, ann_name)
+        with open(ann_path, 'r') as file:
+            ann = json.load(file)
+        file.close()
+
+        all_texts = self.generate_all_text(ann)
+        all_texts = self.tokenize(all_texts)
+
+        label = ann['number'] - 2  # convert number to the index in all_texts
+
+        return image, all_texts, label
+
+    @staticmethod
+    def generate_all_text(ann):
+        origin_text = ann['text'].lower()
+        number_word = ann['number_word'].lower()
+        p = inflect.engine()
+        all_number_words = [p.number_to_words(num) for num in range(2, 11)]
+        all_texts = [origin_text.replace(number_word, new_num_word) for new_num_word in all_number_words]
+
+        return all_texts
+
+
 # <<< end: added by wjpeng <<<
 
 
@@ -739,20 +797,6 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
     preprocess_train, preprocess_val = preprocess_fns
     data = {}
 
-    if args.train_data or args.dataset_type == "synthetic":
-        data["train"] = get_dataset_fn(args.train_data, args.dataset_type)(
-            args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer)
-
-    if args.val_data:
-        data["val"] = get_dataset_fn(args.val_data, args.dataset_type)(
-            args, preprocess_val, is_train=False, tokenizer=tokenizer)
-
-    if args.imagenet_val is not None:
-        data["imagenet-val"] = get_imagenet(args, preprocess_fns, "val")
-
-    if args.imagenet_v2 is not None:
-        data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
-
     #  FIXME: only train mode supported
     if args.dataset_type == 'mix':
         """both normal text-image dataset and counting dataset"""
@@ -762,4 +806,31 @@ def get_data(args, preprocess_fns, epoch=0, tokenizer=None):
         data['train-count'] = get_count_dataset(
             args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer
         )
+        google_dataset = GoogleCountBench(data_root=args.google_val_data_root,
+                                          transform=preprocess_val,
+                                          tokenizer=tokenizer)
+        data['google-count'] = DataLoader(
+            dataset=google_dataset,
+            batch_size=64,
+            num_workers=8,
+            pin_memory=True,
+            shuffle=False,
+            drop_last=False
+        )
+
+    else:
+        if args.train_data or args.dataset_type == "synthetic":
+            data["train"] = get_dataset_fn(args.train_data, args.dataset_type)(
+                args, preprocess_train, is_train=True, epoch=epoch, tokenizer=tokenizer)
+
+        if args.val_data:
+            data["val"] = get_dataset_fn(args.val_data, args.dataset_type)(
+                args, preprocess_val, is_train=False, tokenizer=tokenizer)
+
+        if args.imagenet_val is not None:
+            data["imagenet-val"] = get_imagenet(args, preprocess_fns, "val")
+
+        if args.imagenet_v2 is not None:
+            data["imagenet-v2"] = get_imagenet(args, preprocess_fns, "v2")
+
     return data

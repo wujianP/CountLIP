@@ -503,6 +503,13 @@ def parse_args(args):
         help='the root dir to cache model weights'
     )
 
+    parser.add_argument(
+        "--google-val-data-root",
+        type=str,
+        default='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
+        help='the root dir to google count benchmark'
+    )
+
     # <<< added by countLIP <<<
     args = parser.parse_args(args)
 
