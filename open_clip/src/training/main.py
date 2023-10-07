@@ -37,7 +37,6 @@ from training.train import train_one_epoch, evaluate
 from training.file_utils import pt_load, check_exists, start_sync_process, remote_sync
 from count_eval import google_evaluate
 
-
 LATEST_CHECKPOINT_NAME = "epoch_latest.pt"
 
 
