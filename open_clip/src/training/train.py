@@ -250,7 +250,7 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
             percent_complete = 100.0 * batch_count / num_batches_per_epoch
 
             # NOTE loss is coarsely sampled, just master node and per log update
-            for key, val in losses.items():
+            for key, val in loss_dict.items():
                 if key not in losses_m:
                     losses_m[key] = AverageMeter()
                 losses_m[key].update(val.item(), batch_size)
