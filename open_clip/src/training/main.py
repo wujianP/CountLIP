@@ -304,7 +304,9 @@ def main(args):
     scaler = None
 
     from IPython import embed
+    print('1')
     embed()
+
     if args.train_data or args.dataset_type == "synthetic":
         assert not args.trace, 'Cannot train with traced model'
 
