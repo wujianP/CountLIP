@@ -451,7 +451,7 @@ def main(args):
 
         # >>> added by countLIP: evaluate on Google CountBench >>>
         with torch.no_grad():
-            google_acc, google_dist = google_evaluate(model, preprocess_val, get_tokenizer(args.model))
+            google_acc, google_dist = google_evaluate(model, data['google-count'])
         if is_master(args):
             logging.info(f"Eval Epoch: {epoch} - Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
         # <<< added by countLIP: evaluate on Google CountBench <<<

@@ -239,7 +239,8 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
             with torch.no_grad():
                 google_acc, google_dist = google_evaluate(model, data['google-count'])
             if is_master(args):
-                logging.info(f"Eval Epoch: {epoch} - Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
+                logging.info(f"Eval Epoch: {epoch} - step: {i_accum} / {num_batches_per_epoch} "
+                             f"- Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
         # <<< added by countLIP: evaluate on Google CountBench <<<
 
         if is_master(args) and (i_accum % args.log_every_n_steps == 0 or batch_count == num_batches_per_epoch):
@@ -268,7 +269,7 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
                 f"Train Epoch: {epoch} [{num_samples:>{sample_digits}}/{samples_per_epoch} ({percent_complete:.0f}%)] "
                 f"Data (t): {data_time_m.avg:.3f} "
                 f"Batch (t): {batch_time_m.avg:.3f}, {samples_per_second:#g}/s, {samples_per_second_per_gpu:#g}/s/gpu "
-                f"LR: {optimizer.param_groups[0]['lr']:7f} "
+                f"LR: {optimizer.param_groups[0]['lr']:10f} "
                 f"Logit Scale: {logit_scale_scalar:.3f} " + loss_log
             )
 
