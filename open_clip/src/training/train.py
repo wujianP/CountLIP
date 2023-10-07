@@ -171,8 +171,6 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
                 backward(total_loss, scaler)
 
-
-
         if scaler is not None:
             if args.horovod:
                 optimizer.synchronize()
@@ -207,7 +205,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
         # >>> added by countLIP: evaluate on Google CountBench >>>
         if i_accum % args.eval_google_every_n_steps == 0 or batch_count == num_batches_per_epoch:
             with torch.no_grad():
-                google_acc, google_dist = google_evaluate(model, val_preprocess, tokenizer)
+                google_acc, google_dist = google_evaluate(model, data['google-count'])
             if is_master(args):
                 logging.info(f"Eval Epoch: {epoch} - Google-Acc: {google_acc:.2f} - Google-Dist: {google_dist:.2f}")
         # <<< added by countLIP: evaluate on Google CountBench <<<

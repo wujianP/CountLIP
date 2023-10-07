@@ -16,20 +16,21 @@ def my_collate_fn(batch):
 
 
 @torch.no_grad()
-def google_evaluate(model, val_trans, tokenizer):
+def google_evaluate(model, dataloader):
     model.eval()
     # load dataset
-    dataset = GoogleCountBench(data_root='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
-                               transform=val_trans,
-                               tokenizer=tokenizer)
-    dataloader = DataLoader(
-        dataset=dataset,
-        batch_size=16,
-        num_workers=8,
-        pin_memory=True,
-        shuffle=False,
-        drop_last=False
-    )
+    # dataset = GoogleCountBench(data_root='/DDN_ROOT/wjpeng/dataset/countBench/google/data',
+    #                            transform=val_trans,
+    #                            tokenizer=tokenizer)
+    # dataloader = DataLoader(
+    #     dataset=dataset,
+    #     batch_size=16,
+    #     num_workers=8,
+    #     pin_memory=True,
+    #     shuffle=False,
+    #     drop_last=False
+    # )
+    dataset = dataloader.dataset
 
     correct_num = 0
     total_dist = 0
