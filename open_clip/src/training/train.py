@@ -68,7 +68,7 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     input_dtype = get_input_dtype(args.precision)
 
     loss_count = losses['count-loss']
-    loss_normal = losses['normal_loss']
+    loss_normal = losses['normal-loss']
 
     from IPython import embed
     print('loss')
