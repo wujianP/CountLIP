@@ -15,5 +15,5 @@ conda activate /discobox/wjpeng/env/clip/
 cd /DDN_ROOT/wjpeng/dataset/LAION400M/
 img2dataset --url_list metadata-14-15 --input_format "parquet"\
          --url_col "URL" --caption_col "TEXT" --output_format webdataset\
-           --output_folder laion400m-data-14-15 --processes_count 16 --thread_count 128 --resize_mode no \
+           --output_folder laion400m-data-14-15 --processes_count 32 --thread_count 96 --resize_mode no \
              --save_additional_columns '["NSFW","similarity","LICENSE"]' --incremental

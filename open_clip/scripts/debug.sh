@@ -14,12 +14,12 @@ torchrun --nproc_per_node 8 -m main \
     --count-loss-weight=0.05 \
     --batch-size=256 \
     --count-batch-size=4 \
-    --hard-num=2 \
+    --hard-num=10 \
     --epochs=10 \
     --steps-per-epoch=1000 \
     --lr=1e-6 \
     --logs="/DDN_ROOT/wjpeng/ckp/CountLIP/mix" \
-    --name="bs256-cntbs4-hn2-wt0.05-warm5000" \
+    --name="bs256-cntbs4-hn10-wt0.05-warm5000" \
     --pretrained="openai" \
     --model="ViT-B-32"\
     --copy-codebase \

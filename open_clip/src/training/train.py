@@ -67,9 +67,6 @@ def train_one_epoch(model, data, losses, epoch, optimizer, scaler, scheduler, di
     autocast = get_autocast(args.precision)
     input_dtype = get_input_dtype(args.precision)
 
-    loss_count = losses['count-loss']
-    loss_normal = losses['normal-loss']
-
     model.train()
     if args.distill:
         dist_model.eval()
