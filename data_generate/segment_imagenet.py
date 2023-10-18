@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # segment anything
-from segment_anything import build_sam, SamPredictor, build_sam_vit_l
+from segment_anything import build_sam, SamPredictor, build_sam_vit_h
 from segment_anything.utils.transforms import ResizeLongestSide
 
 
@@ -63,7 +63,7 @@ def wandb_visualize(images, class_names, similarities, boxes, foregrounds):
 def main():
 
     # load sam
-    sam = build_sam_vit_l(checkpoint=args.sam_checkpoint).cuda()
+    sam = build_sam_vit_h(checkpoint=args.sam_checkpoint).cuda()
 
     # load clip
     # clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(args.clip_model,
