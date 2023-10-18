@@ -9,3 +9,5 @@ python explore_dataset.py \
 --coco_caption_ann /DDN_ROOT/wjpeng/dataset/LVIS/annotations/coco/captions_train2017.json \
 --coco_instance_ann /DDN_ROOT/wjpeng/dataset/LVIS/annotations/coco/instances_train2017.json \
 --return_coco_ann
+
+/DDN_ROOT/wjpeng/dataset/coco/annotations/instances_train2014.json
