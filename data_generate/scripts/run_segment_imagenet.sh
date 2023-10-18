@@ -1,4 +1,4 @@
-JOB_ID=23
+JOB_ID=0
 conda activate /discobox/wjpeng/env/countLIP
 cd /discobox/wjpeng/code/202306/CountLIP/data_generate
 git pull
@@ -9,6 +9,6 @@ python segment_imagenet.py \
 --out_dir='/DDN_ROOT/wjpeng/dataset/imagenet/segment_sam_vit_h' \
 --batch_size=8 \
 --num_workers=8 \
---sam_checkpoint='/discobox/wjpeng/weights/sam/sam_vit_l_0b3195.pth' \
+--sam_checkpoint='/discobox/wjpeng/weights/sam/sam_vit_h_4b8939.pth' \
 --job_num=16 \
 --job_id=$JOB_ID
