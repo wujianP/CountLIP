@@ -5,12 +5,14 @@ from torch.utils.data import DataLoader, Subset
 from PIL import Image, ImageDraw
 
 import torch
-import open_clip
 import argparse
 import wandb
 import time
 import numpy as np
-import matplotlib.pyplot as plt
+import random
+import xml.etree.ElementTree as ET
+
+from torch.utils.data import Dataset
 
 # segment anything
 from segment_anything import build_sam, SamPredictor, build_sam_vit_h
