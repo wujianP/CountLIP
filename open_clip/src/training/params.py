@@ -52,7 +52,7 @@ def parse_args(args):
         type=int,
         default=None,
         help="Number of samples in dataset. Required for webdataset if not available in info file."
-             "-1 means adaptive computed with: N=batch-size * gpu-num * steps-per-epoch",
+             "-1 means adaptive computed with: N=batch-size * gpu-num * steps-per-epoch * epochs",
     )
     parser.add_argument(
         "--val-num-samples",
