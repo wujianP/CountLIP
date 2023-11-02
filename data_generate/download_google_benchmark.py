@@ -9,8 +9,8 @@ from PIL import Image
 
 
 if __name__ == '__main__':
-    dataset_file = '/DDN_ROOT/wjpeng/dataset/countBench/google/CountBench.json'
-    output_dir = '/DDN_ROOT/wjpeng/dataset/countBench/google/data'
+    dataset_file = '/DDN_ROOT/wjpeng/dataset/countBench/CountBench.json'
+    output_dir = '/DDN_ROOT/wjpeng/dataset/countBench/data'
     os.makedirs(output_dir, exist_ok=True)
     p = inflect.engine()
 
