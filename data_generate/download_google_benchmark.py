@@ -11,6 +11,7 @@ from PIL import Image
 if __name__ == '__main__':
     dataset_file = '/DDN_ROOT/wjpeng/dataset/countBench/CountBench.json'
     output_dir = '/DDN_ROOT/wjpeng/dataset/countBench/data'
+    timeout = 10
     os.makedirs(output_dir, exist_ok=True)
     p = inflect.engine()
 
@@ -25,7 +26,7 @@ if __name__ == '__main__':
         number_word = p.number_to_words(number)
 
         try:
-            raw_image = Image.open(requests.get(image_url, stream=True).raw).convert('RGB')
+            raw_image = Image.open(requests.get(image_url, stream=True, timeout=timeout).raw).convert('RGB')
             # 提取文件名
             image_filename = os.path.join(output_dir, f'{number_word}_{per_number_cnt[number]:02d}.jpg')
             ann_filename = os.path.join(output_dir, f'{number_word}_{per_number_cnt[number]:02d}.json')
