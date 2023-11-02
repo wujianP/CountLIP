@@ -3,13 +3,8 @@ cd /discobox/wjpeng/code/202306/CountLIP/evaluate
 git pull
 
 python main_google_benchmark.py \
---data-root='/DDN_ROOT/wjpeng/dataset/countBench/google/data' \
+--data-root='/DDN_ROOT/wjpeng/dataset/countBench/data' \
 --batch-size=64 \
 --num-workers=8 \
 --model-name="ViT-B-32" \
---resume='/DDN_ROOT/wjpeng/ckp/betterClip/debug/DDN_ROOT/wjpeng/ckp/betterClip/debug/checkpoints/epoch_1.pt'
-
---resume='/DDN_ROOT/wjpeng/ckp/betterClip/debug/DDN_ROOT/wjpeng/ckp/betterClip/debug/checkpoints/epoch_1.pt'
-
---resume='/DDN_ROOT/wjpeng/ckp/CountLIP/imagenet_only/inter_hn-2_fill-black_bs256*8_ep10_lr5e-6_warm100_vit-b-32-openai/checkpoints/epoch_5.pt'
-
+--resume='/DDN_ROOT/wjpeng/ckp/betterCLIP/ep1000-step100-warm10000_lr1e-6_common-bs256-cc3m-cc12m_extra-bs8-hn2-wt0.25/checkpoints/epoch_20.pt'
